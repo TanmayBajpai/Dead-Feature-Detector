@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "interprocedural",
+    "confidence": 0.60,
+    "function": "legacy_export",
+    "note": "BFS from main() never reaches legacy_export"
+  }
+]

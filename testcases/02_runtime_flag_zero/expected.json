@@ -1,0 +1,8 @@
+[
+  {
+    "kind": "runtime",
+    "confidence": 0.85,
+    "function": "handle_request",
+    "note": "g_feature_new_codec is internal, zero-initialized, never stored"
+  }
+]

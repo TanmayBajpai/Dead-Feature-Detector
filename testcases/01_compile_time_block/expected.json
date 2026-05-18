@@ -1,0 +1,9 @@
+[
+  {
+    "kind": "compile_time",
+    "confidence": 0.95,
+    "function": "process",
+    "basic_block": "dead_legacy_path",
+    "note": "Block has no predecessors in the CFG"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "kind": "interprocedural",
+    "confidence": 0.60,
+    "function": "v2_flush",
+    "note": "Never reachable from main via BFS"
+  },
+  {
+    "kind": "interprocedural",
+    "confidence": 0.60,
+    "function": "v2_commit",
+    "note": "Never reachable from main via BFS"
+  },
+  {
+    "kind": "interprocedural",
+    "confidence": 0.60,
+    "function": "v2_prepare",
+    "note": "Never reachable from main via BFS"
+  }
+]
