@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  python-tests:
+    name: Python unit tests
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run pytest
+        run: PYTHONPATH=src pytest tests/unit -v --ignore=tests/unit/test_pipeline_golden.py
+
+  llvm-pass:
+    name: LLVM pass build + ctest
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM 18
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 llvm-18 llvm-18-dev cmake make
+          sudo ln -sf /usr/bin/clang-18 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/clang++-18 /usr/local/bin/clang++
+          sudo ln -sf /usr/bin/opt-18 /usr/local/bin/opt
+
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DLLVM_DIR="$(llvm-config-18 --cmakedir)"
+
+      - name: Build
+        run: cmake --build build --parallel $(nproc)
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: src/gui/frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+        working-directory: src/gui/frontend
+
+      - name: Build
+        run: npm run build
+        working-directory: src/gui/frontend
+
+  pipeline-golden:
+    name: Golden-file pipeline test
+    runs-on: ubuntu-24.04
+    needs: [llvm-pass]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LLVM 18 + Python
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-18 llvm-18 llvm-18-dev cmake make python3 python3-pip
+          sudo ln -sf /usr/bin/opt-18 /usr/local/bin/opt
+
+      - name: Configure & Build pass
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=clang-18 \
+            -DCMAKE_CXX_COMPILER=clang++-18 \
+            -DLLVM_DIR="$(llvm-config-18 --cmakedir)"
+          cmake --build build --parallel $(nproc)
+
+      - name: Install Python deps
+        run: pip install -e ".[dev]"
+
+      - name: Run golden-file tests
+        run: PYTHONPATH=src pytest tests/unit/test_pipeline_golden.py -v
