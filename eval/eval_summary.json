@@ -1,0 +1,89 @@
+{
+  "about": "Evaluation results for the Dead Feature Detector (Objective 4). The validated suite is the 5 minimal test cases plus a large multi-file demo program. The large-scale target (LLVM itself) is configured but not yet executed.",
+  "aggregate": {
+    "suite_size": 6,
+    "all_passing": true,
+    "total_findings": 48,
+    "documented_dead_lines": 103
+  },
+  "test_cases": [
+    {
+      "id": "TC-01",
+      "name": "compile_time_block",
+      "path": "testcases/01_compile_time_block",
+      "focus": "compile_time",
+      "expected_findings": 1,
+      "expected_confidence": 0.95,
+      "status": "pass",
+      "note": "pred_empty basic block (no CFG predecessors)"
+    },
+    {
+      "id": "TC-02",
+      "name": "runtime_flag_zero",
+      "path": "testcases/02_runtime_flag_zero",
+      "focus": "runtime",
+      "expected_findings": 1,
+      "expected_confidence": 0.85,
+      "status": "pass",
+      "note": "internal zero-initialized flag, never stored (isConstantZeroGlobal)"
+    },
+    {
+      "id": "TC-03",
+      "name": "dead_function",
+      "path": "testcases/03_dead_function",
+      "focus": "interprocedural",
+      "expected_findings": 1,
+      "expected_confidence": 0.60,
+      "status": "pass",
+      "note": "single orphan function, unreachable from main via BFS"
+    },
+    {
+      "id": "TC-04",
+      "name": "transitive_dead",
+      "path": "testcases/04_transitive_dead",
+      "focus": "interprocedural",
+      "expected_findings": 3,
+      "expected_confidence": 0.60,
+      "status": "pass",
+      "note": "3-function dead call chain"
+    },
+    {
+      "id": "TC-05",
+      "name": "alive_code",
+      "path": "testcases/05_alive_code",
+      "focus": "negative",
+      "expected_findings": 0,
+      "expected_confidence": 0.0,
+      "status": "pass",
+      "note": "negative control — all features reachable, 0 findings"
+    }
+  ],
+  "integration": [
+    {
+      "id": "TC-06",
+      "name": "06_demo_large (streamd)",
+      "path": "testcases/06_demo_large",
+      "files": 9,
+      "findings": 42,
+      "dead_lines": 103,
+      "removable_bytes": 2386,
+      "kinds": { "compile_time": 12, "runtime": 12, "interprocedural": 18 },
+      "status": "pass",
+      "note": "large demo: media-server with many dead features of all 3 kinds; 3 build variants; ~2.3 KB removable text measured via llvm-nm"
+    }
+  ],
+  "large_scale": {
+    "target": "LLVM (Clang LTO build)",
+    "status": "configured — not yet run",
+    "reason": "requires a multi-GB whole-program LTO build; not automated in CI",
+    "build_script": "eval/build_llvm.sh",
+    "run_script": "eval/run_eval.sh",
+    "fallback_targets": ["CPython", "SQLite", "Redis"],
+    "expected_categories": [
+      "experimental backends guarded by LLVM_EXPERIMENTAL_TARGETS_TO_BUILD",
+      "deprecated API wrappers under LLVM_ENABLE_DEPRECATED",
+      "platform-specific paths (#ifdef _WIN32) absent from a Linux build",
+      "assertion/debug code excluded under NDEBUG"
+    ]
+  }
+}

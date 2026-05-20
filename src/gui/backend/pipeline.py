@@ -147,11 +147,14 @@ async def _execute(
         from reporter.report import generate_report
 
         report = await asyncio.get_event_loop().run_in_executor(
-            None, generate_report, ir_path, config_path, out_dir / "report"
+            None, generate_report, ir_path, config_path, out_dir / "report", bitcode_files
         )
         report_path = out_dir / "report" / "report.json"
         n_findings = report["stats"]["total_findings"]
         run._emit(f"    → {n_findings} finding(s), report at {report_path}")
+        size = report["stats"]
+        if size.get("binary_size_measured"):
+            run._emit(f"    → ~{size.get('removable_bytes', 0):,} bytes removable (measured via llvm-nm)")
 
         # ── Step 4: Hot-reload ────────────────────────────────────────────────
         run.step = 4
@@ -159,7 +162,7 @@ async def _execute(
         run._emit("[4/4] Loading results into browser")
 
         from . import api as _api
-        _api.configure(report_path, source_root)
+        _api.configure(report_path, source_root, config_path)
         run._emit("    → Done")
 
         run.state = "done"

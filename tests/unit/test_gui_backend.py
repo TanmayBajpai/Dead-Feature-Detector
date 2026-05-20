@@ -71,11 +71,40 @@ def test_get_stats(client):
     assert len(data["confidence_histogram"]) == 10
 
 
-def test_get_graph(client):
-    r = client.get("/graph")
+def test_get_config_absent(client):
+    r = client.get("/config")
     assert r.status_code == 200
     data = r.json()
-    assert "nodes" in data and "edges" in data
+    assert data["has_config"] is False
+    assert data["target_count"] == 0
+
+
+def test_get_config_present(tmp_path):
+    report_file = tmp_path / "report.json"
+    report_file.write_text(json.dumps(SAMPLE_REPORT))
+    config_file = tmp_path / "config.json"
+    config_file.write_text(json.dumps({
+        "targets": [{"name": "tgt", "compile_definitions": ["FEATURE_X", "NDEBUG"],
+                     "source_files": ["a.c", "a.c", "b.c"]}],
+        "global_definitions": ["_GNU_SOURCE"],
+    }))
+    configure(report_file, tmp_path, config_file)
+    client = TestClient(app)
+    data = client.get("/config").json()
+    assert data["has_config"] is True
+    assert data["target_count"] == 1
+    assert data["targets"][0]["define_count"] == 2
+    assert data["targets"][0]["source_count"] == 2  # deduplicated
+    assert data["global_definitions"] == ["_GNU_SOURCE"]
+
+
+def test_get_eval(client):
+    r = client.get("/eval")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["has_eval"] is True
+    assert len(data["test_cases"]) >= 5
+    assert "large_scale" in data
 
 
 def test_source_path_traversal_blocked(client, tmp_path):

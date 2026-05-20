@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, Finding, Stats } from './api'
+import { api, Finding, Stats, ConfigData, EvalData } from './api'
 import Dashboard from './components/Dashboard'
 import FindingTable from './components/FindingTable'
 import SourceViewer from './components/SourceViewer'
-import CallGraphPanel from './components/CallGraphPanel'
 import PipelineRunner from './components/PipelineRunner'
+import ObjectivesOverview from './components/ObjectivesOverview'
+import ConfigView from './components/ConfigView'
+import ReachabilityView from './components/ReachabilityView'
+import EvaluationView from './components/EvaluationView'
 
-type Tab = 'setup' | 'dashboard' | 'findings' | 'graph'
+type Tab = 'objectives' | 'setup' | 'configs' | 'reachability' | 'findings' | 'evaluation' | 'impact'
+
+const RESULT_TABS: { id: Tab; label: string }[] = [
+  { id: 'objectives', label: 'Objectives' },
+  { id: 'configs', label: 'Configurations' },
+  { id: 'reachability', label: 'Reachability' },
+  { id: 'findings', label: 'Findings' },
+  { id: 'evaluation', label: 'Evaluation' },
+  { id: 'impact', label: 'Impact' },
+]
 
 function useSearchParam(key: string, fallback: string): [string, (v: string) => void] {
   const read = () => new URLSearchParams(window.location.search).get(key) ?? fallback
@@ -25,9 +37,11 @@ function useSearchParam(key: string, fallback: string): [string, (v: string) => 
 export default function App() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [findings, setFindings] = useState<Finding[]>([])
+  const [config, setConfig] = useState<ConfigData | null>(null)
+  const [evalData, setEvalData] = useState<EvalData | null>(null)
   const [selected, setSelected] = useState<Finding | null>(null)
   const [loading, setLoading] = useState(true)
-  const [tab, setTabRaw] = useSearchParam('tab', 'setup')
+  const [tab, setTabRaw] = useSearchParam('tab', 'objectives')
   const setTab = (t: Tab) => setTabRaw(t)
 
   // Last run params for "Run Again".
@@ -42,12 +56,14 @@ export default function App() {
   }, [dark])
 
   const loadData = useCallback(() => {
-    Promise.all([api.stats(), api.findings()])
-      .then(([s, f]) => {
+    Promise.all([api.stats(), api.findings(), api.config().catch(() => null), api.eval().catch(() => null)])
+      .then(([s, f, c, e]) => {
         setStats(s)
         setFindings(f)
-        // If server already has a report loaded, go straight to dashboard.
-        if (s.has_report && tab === 'setup') setTab('dashboard')
+        setConfig(c)
+        setEvalData(e)
+        // If no report yet, fall back to setup.
+        if (!s.has_report) setTab('setup')
       })
       .catch(() => {/* stay on setup */})
       .finally(() => setLoading(false))
@@ -58,7 +74,7 @@ export default function App() {
   const handleRunComplete = useCallback(() => {
     loadData()
     setSelected(null)
-    setTab('dashboard')
+    setTab('objectives')
   }, [loadData])
 
   const tabStyle = (t: Tab): React.CSSProperties => ({
@@ -73,6 +89,7 @@ export default function App() {
   })
 
   const hasResults = stats?.has_report ?? false
+  const scrollPane: React.CSSProperties = { flex: 1, overflow: 'auto', padding: 24 }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -116,17 +133,13 @@ export default function App() {
       </header>
 
       {/* Tabs — hide results tabs until we have a report */}
-      <div style={{ display: 'flex', gap: 2, padding: '8px 24px 0', background: 'var(--bg)' }}>
+      <div style={{ display: 'flex', gap: 2, padding: '8px 24px 0', background: 'var(--bg)', flexWrap: 'wrap' }}>
         <button style={tabStyle('setup')} onClick={() => setTab('setup')}>
           {hasResults ? '↺ Setup' : '⚙ Setup'}
         </button>
-        {hasResults && (
-          <>
-            <button style={tabStyle('dashboard')} onClick={() => setTab('dashboard')}>Dashboard</button>
-            <button style={tabStyle('findings')} onClick={() => setTab('findings')}>Findings</button>
-            <button style={tabStyle('graph')} onClick={() => setTab('graph')}>Graph</button>
-          </>
-        )}
+        {hasResults && RESULT_TABS.map(t => (
+          <button key={t.id} style={tabStyle(t.id)} onClick={() => setTab(t.id)}>{t.label}</button>
+        ))}
       </div>
 
       {/* Main content */}
@@ -138,13 +151,19 @@ export default function App() {
             initialSourceRoot={lastSourceRoot}
           />
         )}
-        {tab === 'dashboard' && hasResults && stats && (
-          <div style={{ flex: 1, overflow: 'auto', padding: 24 }}>
-            <Dashboard
-              stats={stats}
-              findings={findings}
-              onSelect={f => { setSelected(f); setTab('findings') }}
-            />
+        {tab === 'objectives' && hasResults && stats && (
+          <div style={scrollPane}>
+            <ObjectivesOverview stats={stats} config={config} evalData={evalData} onNavigate={setTab} />
+          </div>
+        )}
+        {tab === 'configs' && hasResults && (
+          <div style={scrollPane}>
+            <ConfigView config={config} />
+          </div>
+        )}
+        {tab === 'reachability' && hasResults && stats && (
+          <div style={scrollPane}>
+            <ReachabilityView stats={stats} />
           </div>
         )}
         {tab === 'findings' && hasResults && (
@@ -159,12 +178,18 @@ export default function App() {
             )}
           </div>
         )}
-        {tab === 'graph' && hasResults && (
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <CallGraphPanel onSelectNode={name => {
-              const f = findings.find(x => x.function === name)
-              if (f) { setSelected(f); setTab('findings') }
-            }} />
+        {tab === 'evaluation' && hasResults && (
+          <div style={scrollPane}>
+            <EvaluationView evalData={evalData} />
+          </div>
+        )}
+        {tab === 'impact' && hasResults && stats && (
+          <div style={scrollPane}>
+            <Dashboard
+              stats={stats}
+              findings={findings}
+              onSelect={f => { setSelected(f); setTab('findings') }}
+            />
           </div>
         )}
       </main>

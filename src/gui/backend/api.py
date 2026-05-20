@@ -20,17 +20,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+_EVAL_SUMMARY = _PROJECT_ROOT / "eval" / "eval_summary.json"
+
 # Populated by __main__.py or by the pipeline after a run completes.
 _report: dict = {"findings": [], "stats": {}}
+_config: dict = {"targets": [], "global_definitions": []}
 _source_reader: Optional[SourceReader] = None
 _has_report: bool = False
+_has_config: bool = False
 
 
-def configure(report_path: Path, source_root: Path) -> None:
-    global _report, _source_reader, _has_report
+def configure(report_path: Path, source_root: Path, config_path: Optional[Path] = None) -> None:
+    global _report, _config, _source_reader, _has_report, _has_config
     _report = json.loads(report_path.read_text())
     _source_reader = SourceReader(source_root)
     _has_report = True
+
+    # The config manifest is written one level above report/ by the pipeline.
+    if config_path is None:
+        config_path = report_path.parent.parent / "config.json"
+    if config_path and Path(config_path).exists():
+        _config = json.loads(Path(config_path).read_text())
+        _has_config = True
+    else:
+        _config = {"targets": [], "global_definitions": []}
+        _has_config = False
 
 
 # ── Results endpoints ─────────────────────────────────────────────────────────
@@ -76,26 +91,6 @@ def get_source(
         raise HTTPException(status_code=404, detail=f"File not found: {file}")
 
 
-@app.get("/graph")
-def get_graph(limit: int = Query(100, ge=1, le=500)):
-    findings = _report.get("findings", [])
-    dead = sorted(findings, key=lambda f: f.get("confidence", 0), reverse=True)[:limit]
-    nodes, seen = [], set()
-    for f in dead:
-        fn = f.get("function", "")
-        if not fn or fn in seen:
-            continue
-        seen.add(fn)
-        nodes.append({
-            "id": fn,
-            "confidence": f.get("confidence", 0),
-            "kind": f.get("kind", "unknown"),
-            "source_file": f.get("source_file", ""),
-            "start_line": f.get("start_line", 0),
-        })
-    return {"nodes": nodes, "edges": []}
-
-
 @app.get("/stats")
 def get_stats():
     stats = _report.get("stats", {})
@@ -112,6 +107,39 @@ def get_stats():
             for i in range(10)
         ],
     }
+
+
+@app.get("/config")
+def get_config():
+    """Objective 1: build configurations extracted from CMake/Makefile.
+
+    Returns the per-target ``#define`` sets plus convenience counts so the GUI
+    can show what build configurations the analysis was correlated against.
+    """
+    targets = _config.get("targets", [])
+    return {
+        "has_config": _has_config,
+        "global_definitions": _config.get("global_definitions", []),
+        "target_count": len(targets),
+        "targets": [
+            {
+                "name": t.get("name", ""),
+                "compile_definitions": t.get("compile_definitions", []),
+                "source_files": t.get("source_files", []),
+                "define_count": len(t.get("compile_definitions", [])),
+                "source_count": len(set(t.get("source_files", []))),
+            }
+            for t in targets
+        ],
+    }
+
+
+@app.get("/eval")
+def get_eval():
+    """Objective 4: evaluation results (test-case suite + large-scale target)."""
+    if _EVAL_SUMMARY.exists():
+        return {"has_eval": True, **json.loads(_EVAL_SUMMARY.read_text())}
+    return {"has_eval": False, "test_cases": [], "integration": [], "large_scale": {}}
 
 
 # ── Pipeline runner endpoints ─────────────────────────────────────────────────

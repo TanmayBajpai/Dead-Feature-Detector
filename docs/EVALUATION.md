@@ -114,47 +114,32 @@ LLVM `-O2` baseline: again, `__attribute__((used))` prevents removal; 0 findings
 
 ---
 
-### TC-06: Test Program 1 (Integration — Interprocedural Only)
+### TC-06: 06_demo_large (Integration Demo — All Three Kinds, Large Scale)
 
-**Source:** `test program/` — 6-file C++ server simulation  
-**Bitcode:** `test program/build/bitcode/standard/program.bc` (whole-program via `llvm-link`)
+**Source:** `testcases/06_demo_large/` — 9-file C++ "streamd" media server  
+**Bitcode:** `testcases/06_demo_large/build/bitcode/posix/program.bc` (whole-program via `llvm-link`)
 
-11 dead functions across two source files (`legacy_protocol.cpp`, `dead_features.cpp`).
-
-| Metric | Value |
-|---|---|
-| Total findings (per variant) | 11 |
-| After deduplication (3 variants) | 11 |
-| Kind | interprocedural (all) |
-| Avg confidence | 0.60 |
-| Dead lines | 35 |
-
----
-
-### TC-07: Test Program 2 (Integration — All Three Kinds)
-
-**Source:** `test program 2/` — 6-file C++ log-ingestion system  
-**Bitcode:** `test program 2/build/bitcode/standard/program.bc`
-
-Demonstrates all three detection kinds in a single analysis run.
+The showcase demo: a media-server codebase carrying a large number of dead features of all three
+kinds — legacy/deprecated paths, flag-gated experimental codecs, orphaned hardware backends.
+Built in 3 variants (posix / debug / embedded) with distinct `#define` sets.
 
 | Metric | Value |
 |---|---|
-| Total findings | 16 |
-| compile_time | 3 (confidence 0.95) |
-| runtime | 3 (confidence 0.85) |
-| interprocedural | 10 (confidence 0.60) |
-| Dead lines | 61 |
-| Avg confidence | 0.71 |
+| Total findings | 42 |
+| compile_time | 12 (confidence 0.95) |
+| runtime | 12 (confidence 0.85) |
+| interprocedural | 18 (confidence 0.60) |
+| Dead lines | 103 |
+| Removable text (measured via `llvm-nm`) | ~2.3 KB |
+| Avg confidence | 0.77 |
 
 **Breakdown by source file:**
 
 | File | Kind | Count | Notes |
 |---|---|---|---|
-| `ingestion.cpp` | compile_time | 3 | Labeled blocks after `return`: `legacy_xml_path`, `proto2_path`, `csv_fallback` |
-| `metrics.cpp` | runtime | 3 | Globals `g_feature_distributed_tracing`, `g_feature_histogram_export`, `sampling_enabled` |
-| `legacy_sink.cpp` | interprocedural | 5 | v1 log-sink interface, never called from main |
-| `dead_processors.cpp` | interprocedural | 5 | Analytics pipeline functions, never called |
+| `pipeline.cpp`, `codecs.cpp`, `transforms.cpp`, `platform.cpp` | compile_time | 12 | Labeled fallback blocks after `return` (no CFG predecessors) |
+| `codecs.cpp`, `transforms.cpp`, `telemetry.cpp` | runtime | 12 | Zero-initialized internal feature-flag globals (`g_feature_*`, `*_enabled`, `FEATURE_*`, `FLAGS_*`, `kEnable*`) |
+| `legacy_rtmp.cpp`, `experimental_backends.cpp`, `deprecated_api.cpp` | interprocedural | 18 | Orphaned `static` functions (incl. transitive dead chains), never reached from `main` |
 
 ---
 
@@ -163,8 +148,7 @@ Demonstrates all three detection kinds in a single analysis run.
 | Test case | False positives | Reason |
 |---|---|---|
 | TC-01 through TC-05 | 0 | Ground truth known; all findings correct |
-| TC-06 (test program 1) | 0 | All 11 flagged functions verified to have no callers |
-| TC-07 (test program 2) | 0 | All findings confirmed by manual code inspection |
+| TC-06 (06_demo_large) | 0 | All 42 findings match `expected.json`; verified by inspection |
 
 **Known false-positive scenario (interprocedural):** Functions reachable only via function
 pointers (indirect calls) will be flagged as dead because the call-graph BFS only follows direct
@@ -182,9 +166,8 @@ removing."
 | TC-03 single dead fn | 1 | 2 | 0.60 | No (used attribute) |
 | TC-04 transitive dead chain | 3 | 8 | 0.60 | No (used attribute) |
 | TC-05 alive code (negative) | 0 | 0 | — | N/A |
-| TC-06 test program 1 | 11 | 35 | 0.60 | No |
-| TC-07 test program 2 | 16 | 61 | 0.71 | Partially silent |
-| **Total across all TCs** | **33** | **110** | **0.68** | |
+| TC-06 06_demo_large | 42 | 103 | 0.77 | Partially silent |
+| **Total across all TCs** | **48** | **117** | **0.75** | |
 
 ---
 
@@ -201,10 +184,6 @@ removing."
 ./run.sh --testcase 04
 ./run.sh --testcase 05
 
-# Run integration test programs
-cd "test program" && bash build.sh
-./run.sh --testcase test-program-1
-
-cd "test program 2" && bash build.sh
-./run.sh --testcase test-program-2 --gui
+# Run the large demo (builds bitcode on first run) and open the GUI
+./run.sh --testcase 06 --gui
 ```

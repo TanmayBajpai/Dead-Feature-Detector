@@ -28,12 +28,13 @@ Options:
   --source-root <path>   Root of the source tree (for source viewer)
   --out <dir>            Output directory (default: ./out)
   --gui                  Open the web GUI after analysis
-  --testcase <name>      Run a built-in testcase: 01..05 (or "test-program-1", "test-program-2")
+  --testcase <name>      Run a built-in testcase: 01..06
+                         06 / "demo" = large multi-file demo (42 findings, all 3 kinds)
   --help                 Show this help
 
 Examples:
   ./run.sh --testcase 01
-  ./run.sh --testcase test-program-2 --gui
+  ./run.sh --testcase 06 --gui
   ./run.sh --build-dir /my/project/build --source-root /my/project --gui
 EOF
     exit 0
@@ -59,9 +60,8 @@ if [[ -n "$TESTCASE" ]]; then
         03*) TC_DIR="$ROOT/testcases/03_dead_function" ;;
         04*) TC_DIR="$ROOT/testcases/04_transitive_dead" ;;
         05*) TC_DIR="$ROOT/testcases/05_alive_code" ;;
-        test-program-1) TC_DIR="$ROOT/test program" ;;
-        test-program-2) TC_DIR="$ROOT/test program 2" ;;
-        *) echo "Unknown testcase '$TESTCASE'. Valid: 01-05, test-program-1, test-program-2"; exit 1 ;;
+        06*|demo) TC_DIR="$ROOT/testcases/06_demo_large" ;;
+        *) echo "Unknown testcase '$TESTCASE'. Valid: 01-06 (06 = demo)"; exit 1 ;;
     esac
 
     # If the testcase has its own build.sh and no bitcode yet, build it first.
@@ -170,12 +170,13 @@ json.dump(existing + new, open('$ALL_FINDINGS','w'), indent=2)
 "
 done
 
-# Step 3: Report
+# Step 3: Report (pass bitcode so removable binary size is measured)
 echo "[3/3] Generating report…"
 python3 -m reporter \
     --ir-findings "$ALL_FINDINGS" \
     --config "$OUT_DIR/config.json" \
-    --out "$OUT_DIR/report"
+    --out "$OUT_DIR/report" \
+    --bitcode "${BC_FILES[@]}"
 
 echo ""
 echo "=== Results ==="

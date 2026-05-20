@@ -7,8 +7,9 @@ export default defineConfig({
     proxy: {
       '/findings': 'http://localhost:8421',
       '/source':   'http://localhost:8421',
-      '/graph':    'http://localhost:8421',
       '/stats':    'http://localhost:8421',
+      '/config':   'http://localhost:8421',
+      '/eval':     'http://localhost:8421',
       '/run':      { target: 'http://localhost:8421', changeOrigin: false },
     },
   },

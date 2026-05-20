@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react'
 import * as d3 from 'd3'
 import { Stats, Finding } from '../api'
+import { formatBytes } from '../format'
 
 interface Props {
   stats: Stats
@@ -20,14 +21,19 @@ function ConfidenceHistogram({ data }: { data: Stats['confidence_histogram'] }) 
     if (!ref.current) return
     const svg = d3.select(ref.current)
     svg.selectAll('*').remove()
-    const W = 360, H = 140, pad = { top: 10, right: 10, bottom: 30, left: 36 }
+    const W = 360, H = 170, pad = { top: 10, right: 10, bottom: 60, left: 36 }
     const w = W - pad.left - pad.right
     const h = H - pad.top - pad.bottom
     const g = svg.append('g').attr('transform', `translate(${pad.left},${pad.top})`)
     const x = d3.scaleBand().domain(data.map(d => d.range)).range([0, w]).padding(0.15)
     const y = d3.scaleLinear().domain([0, d3.max(data, d => d.count) || 1]).range([h, 0])
-    g.append('g').attr('transform', `translate(0,${h})`).call(d3.axisBottom(x).tickSize(0))
-      .select('.domain').remove()
+    const xAxisG = g.append('g').attr('transform', `translate(0,${h})`).call(d3.axisBottom(x).tickSize(0))
+    xAxisG.select('.domain').remove()
+    xAxisG.selectAll('text')
+      .attr('transform', 'rotate(-45)')
+      .style('text-anchor', 'end')
+      .attr('dx', '-0.4em')
+      .attr('dy', '0.15em')
     g.append('g').call(d3.axisLeft(y).ticks(4)).select('.domain').remove()
     g.selectAll('.bar').data(data).join('rect').attr('class', 'bar')
       .attr('x', d => x(d.range)!).attr('y', d => y(d.count))
@@ -35,7 +41,7 @@ function ConfidenceHistogram({ data }: { data: Stats['confidence_histogram'] }) 
       .attr('fill', '#6c8aff').attr('rx', 2)
     svg.selectAll('text').attr('fill', '#8892a4').attr('font-size', 11)
   }, [data])
-  return <svg ref={ref} width={360} height={140} />
+  return <svg ref={ref} width={360} height={170} />
 }
 
 export default function Dashboard({ stats, findings, onSelect }: Props) {
@@ -51,12 +57,25 @@ export default function Dashboard({ stats, findings, onSelect }: Props) {
     </div>
   )
 
+  const binaryValue = stats.binary_size_measured ? formatBytes(stats.removable_bytes) : '—'
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div>
+        <div style={{ fontSize: 20, fontWeight: 700 }}>Removable code volume & impact</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 4 }}>
+          Objective 5 — dead lines and binary size that could be removed.
+          {stats.binary_size_measured
+            ? <> Binary size measured via <code>llvm-nm --print-size</code> on llc-compiled objects.</>
+            : <> Binary size not measured for this report — re-run the pipeline to measure.</>}
+        </div>
+      </div>
+
       {/* Summary cards */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-        {card('Findings', stats.total_findings)}
         {card('Dead lines', stats.total_dead_lines.toLocaleString())}
+        {card('Binary savings', binaryValue)}
+        {card('Findings', stats.total_findings)}
         {card('Avg confidence', stats.avg_confidence.toFixed(2))}
         {Object.entries(stats.by_kind).map(([k, v]) =>
           card(k.replace('_', ' '), v)
@@ -85,7 +104,7 @@ export default function Dashboard({ stats, findings, onSelect }: Props) {
                     {f.feature_name}
                   </td>
                   <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>
-                    {f.estimated_lines} lines
+                    {f.estimated_lines} lines{f.estimated_bytes ? ` · ${formatBytes(f.estimated_bytes)}` : ''}
                   </td>
                 </tr>
               ))}

@@ -131,9 +131,12 @@ Findings with confidence ≥ 0.8 are considered **provably dead** and safe to re
 
 | Tab | Description |
 |---|---|
-| Dashboard | Summary cards, confidence histogram |
+| Objectives | Landing page mapping each deliverable to its component, with outcome metrics |
+| Configurations | Per-target `#define` sets extracted from the build system |
+| Reachability | Per-mechanism counts (compile_time / runtime / interprocedural) |
 | Findings | Sortable/filterable table; click a row to open the source viewer |
-| Graph | D3 force-directed call graph of dead functions; click a node to inspect |
+| Evaluation | Test-case results and large-scale target status |
+| Impact | Dead-line count, measured binary savings, confidence histogram |
 
 Filter state is synced to URL query params so links can be shared.
 

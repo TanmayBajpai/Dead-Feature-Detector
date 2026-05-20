@@ -1,0 +1,380 @@
+[
+  {
+    "basic_block": "deprecated_avi_probe",
+    "confidence": 0.94999999999999996,
+    "end_line": 18,
+    "function": "_Z12probe_streamPK6Streami",
+    "kind": "compile_time",
+    "source_file": "src/pipeline.cpp",
+    "start_line": 17
+  },
+  {
+    "basic_block": "raw_yuv_dump_legacy",
+    "confidence": 0.94999999999999996,
+    "end_line": 31,
+    "function": "_Z13decode_streamP6Stream",
+    "kind": "compile_time",
+    "source_file": "src/pipeline.cpp",
+    "start_line": 29
+  },
+  {
+    "basic_block": "mpeg2_ts_legacy_flush",
+    "confidence": 0.94999999999999996,
+    "end_line": 41,
+    "function": "_Z14flush_pipelinev",
+    "kind": "compile_time",
+    "source_file": "src/pipeline.cpp",
+    "start_line": 39
+  },
+  {
+    "basic_block": "vp8_legacy_select",
+    "confidence": 0.94999999999999996,
+    "end_line": 64,
+    "function": "_Z14select_decoderi",
+    "kind": "compile_time",
+    "source_file": "src/codecs.cpp",
+    "start_line": 63
+  },
+  {
+    "basic_block": "theora_fallback_open",
+    "confidence": 0.94999999999999996,
+    "end_line": 73,
+    "function": "_Z10open_codeci",
+    "kind": "compile_time",
+    "source_file": "src/codecs.cpp",
+    "start_line": 72
+  },
+  {
+    "basic_block": "wmv_compat_close",
+    "confidence": 0.94999999999999996,
+    "end_line": 82,
+    "function": "_Z11close_codeci",
+    "kind": "compile_time",
+    "source_file": "src/codecs.cpp",
+    "start_line": 81
+  },
+  {
+    "basic_block": "gamma22_bt601_legacy",
+    "confidence": 0.94999999999999996,
+    "end_line": 18,
+    "function": "_Z21apply_color_transformP5Frame",
+    "kind": "compile_time",
+    "source_file": "src/transforms.cpp",
+    "start_line": 16
+  },
+  {
+    "basic_block": "deinterlace_bob_legacy",
+    "confidence": 0.94999999999999996,
+    "end_line": 61,
+    "function": "_Z17deinterlace_frameP5Frame",
+    "kind": "compile_time",
+    "source_file": "src/transforms.cpp",
+    "start_line": 60
+  },
+  {
+    "basic_block": "chroma_411_legacy",
+    "confidence": 0.94999999999999996,
+    "end_line": 69,
+    "function": "_Z16subsample_chromaP5Frame",
+    "kind": "compile_time",
+    "source_file": "src/transforms.cpp",
+    "start_line": 68
+  },
+  {
+    "basic_block": "win_wasapi_open",
+    "confidence": 0.94999999999999996,
+    "end_line": 17,
+    "function": "_Z17audio_output_openi",
+    "kind": "compile_time",
+    "source_file": "src/platform.cpp",
+    "start_line": 16
+  },
+  {
+    "basic_block": "win_d3d11_present",
+    "confidence": 0.94999999999999996,
+    "end_line": 26,
+    "function": "_Z13video_presentP5Frame",
+    "kind": "compile_time",
+    "source_file": "src/platform.cpp",
+    "start_line": 25
+  },
+  {
+    "basic_block": "win_mmcss_boost",
+    "confidence": 0.94999999999999996,
+    "end_line": 35,
+    "function": "_Z21set_realtime_priorityi",
+    "kind": "compile_time",
+    "source_file": "src/platform.cpp",
+    "start_line": 34
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 22,
+    "function": "_Z10encode_av1P5Framei",
+    "kind": "runtime",
+    "source_file": "src/codecs.cpp",
+    "start_line": 21
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 32,
+    "function": "_Z17encode_hevc_10bitP5Frame",
+    "kind": "runtime",
+    "source_file": "src/codecs.cpp",
+    "start_line": 30
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 42,
+    "function": "_Z11tonemap_hdrP5Framed",
+    "kind": "runtime",
+    "source_file": "src/codecs.cpp",
+    "start_line": 40
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 50,
+    "function": "_Z16mux_dolby_visionP6Stream",
+    "kind": "runtime",
+    "source_file": "src/codecs.cpp",
+    "start_line": 49
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 24,
+    "function": "_Z13sharpen_frameP5Framei",
+    "kind": "runtime",
+    "source_file": "src/transforms.cpp",
+    "start_line": 23
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 34,
+    "function": "_Z13denoise_frameP5Frame",
+    "kind": "runtime",
+    "source_file": "src/transforms.cpp",
+    "start_line": 32
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 42,
+    "function": "_Z14add_film_grainP5Framed",
+    "kind": "runtime",
+    "source_file": "src/transforms.cpp",
+    "start_line": 41
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 50,
+    "function": "_Z10blur_facesP5Frame",
+    "kind": "runtime",
+    "source_file": "src/transforms.cpp",
+    "start_line": 49
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 17,
+    "function": "_Z21record_decode_latencyPKcm",
+    "kind": "runtime",
+    "source_file": "src/telemetry.cpp",
+    "start_line": 15
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 24,
+    "function": "_Z13profile_frameim",
+    "kind": "runtime",
+    "source_file": "src/telemetry.cpp",
+    "start_line": 23
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 32,
+    "function": "_Z20export_frame_heatmapPK5Frame",
+    "kind": "runtime",
+    "source_file": "src/telemetry.cpp",
+    "start_line": 31
+  },
+  {
+    "basic_block": "if.then",
+    "confidence": 0.84999999999999998,
+    "end_line": 41,
+    "function": "_Z18remote_debug_breakPKc",
+    "kind": "runtime",
+    "source_file": "src/telemetry.cpp",
+    "start_line": 40
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 14,
+    "function": "_ZL12rtmp_connectPKci",
+    "kind": "interprocedural",
+    "source_file": "src/legacy_rtmp.cpp",
+    "start_line": 13
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 19,
+    "function": "_ZL14rtmp_handshakei",
+    "kind": "interprocedural",
+    "source_file": "src/legacy_rtmp.cpp",
+    "start_line": 18
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 24,
+    "function": "_ZL16rtmp_send_packetiPK5Frame",
+    "kind": "interprocedural",
+    "source_file": "src/legacy_rtmp.cpp",
+    "start_line": 23
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 29,
+    "function": "_ZL10rtmp_flushi",
+    "kind": "interprocedural",
+    "source_file": "src/legacy_rtmp.cpp",
+    "start_line": 28
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 35,
+    "function": "_ZL15rtmp_disconnecti",
+    "kind": "interprocedural",
+    "source_file": "src/legacy_rtmp.cpp",
+    "start_line": 33
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 42,
+    "function": "_ZL17rtmp_drain_streamiP6Stream",
+    "kind": "interprocedural",
+    "source_file": "src/legacy_rtmp.cpp",
+    "start_line": 39
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 12,
+    "function": "_ZL9cuda_initi",
+    "kind": "interprocedural",
+    "source_file": "src/experimental_backends.cpp",
+    "start_line": 11
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 17,
+    "function": "_ZL17cuda_upload_framePK5Frame",
+    "kind": "interprocedural",
+    "source_file": "src/experimental_backends.cpp",
+    "start_line": 16
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 25,
+    "function": "_ZL17cuda_encode_framePK5Framei",
+    "kind": "interprocedural",
+    "source_file": "src/experimental_backends.cpp",
+    "start_line": 22
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 31,
+    "function": "_ZL10vaapi_initPKc",
+    "kind": "interprocedural",
+    "source_file": "src/experimental_backends.cpp",
+    "start_line": 30
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 38,
+    "function": "_ZL18vaapi_encode_framePK5Frame",
+    "kind": "interprocedural",
+    "source_file": "src/experimental_backends.cpp",
+    "start_line": 36
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 44,
+    "function": "_ZL16qsv_encode_framePK5Framei",
+    "kind": "interprocedural",
+    "source_file": "src/experimental_backends.cpp",
+    "start_line": 43
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 12,
+    "function": "_ZL15old_open_streamPKc",
+    "kind": "interprocedural",
+    "source_file": "src/deprecated_api.cpp",
+    "start_line": 11
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 18,
+    "function": "_ZL14old_read_frameiP5Frame",
+    "kind": "interprocedural",
+    "source_file": "src/deprecated_api.cpp",
+    "start_line": 16
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 23,
+    "function": "_ZL8old_seekil",
+    "kind": "interprocedural",
+    "source_file": "src/deprecated_api.cpp",
+    "start_line": 22
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 28,
+    "function": "_ZL9old_closei",
+    "kind": "interprocedural",
+    "source_file": "src/deprecated_api.cpp",
+    "start_line": 27
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 34,
+    "function": "_ZL17old_read_metadataiPcm",
+    "kind": "interprocedural",
+    "source_file": "src/deprecated_api.cpp",
+    "start_line": 31
+  },
+  {
+    "basic_block": "",
+    "confidence": 0.59999999999999998,
+    "end_line": 43,
+    "function": "_ZL22old_generate_thumbnailPKcP5Frame",
+    "kind": "interprocedural",
+    "source_file": "src/deprecated_api.cpp",
+    "start_line": 39
+  }
+]

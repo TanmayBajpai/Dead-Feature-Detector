@@ -131,16 +131,20 @@ Findings are sorted by confidence descending.
 - `GET /findings[?kind=&min_confidence=&file=]` — filtered findings list
 - `GET /findings/{id}` — single finding
 - `GET /source?file=&start=&end=&context=` — source lines (path-traversal guarded)
-- `GET /graph[?limit=]` — top-N dead nodes for D3 force graph
-- `GET /stats` — stats + confidence histogram
+- `GET /config` — build configurations (per-target `#define` sets)
+- `GET /eval` — evaluation summary manifest
+- `GET /stats` — stats + confidence histogram + removable binary bytes
 
 Path-traversal guard in `source.py`: `Path(file).resolve()` must have `source_root` as a prefix.
 
 **Frontend (React 18 + TypeScript + Vite, `src/gui/frontend/`):**
-- `Dashboard` — summary cards, D3 confidence histogram
+- `ObjectivesOverview` — landing page mapping each deliverable to its component
+- `ConfigView` — per-target `#define` sets (Objective 1)
+- `ReachabilityView` — per-mechanism dead-region counts (Objective 2)
 - `FindingTable` — sortable/filterable table; filter state synced to URL query params
 - `SourceViewer` — Prism.js syntax-highlighted viewer; dead lines highlighted in red
-- `CallGraphPanel` — D3 force-directed graph of dead-function subgraph
+- `EvaluationView` — test-case + integration results, large-scale target status (Objective 4)
+- `Dashboard` — Impact: summary cards, D3 confidence histogram, measured binary savings (Objective 5)
 
 Dark/light mode toggled via a button; preference stored in `localStorage`.
 
