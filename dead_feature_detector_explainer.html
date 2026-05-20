@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dead Feature Detector — Project Explainer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:   #1d4ed8;
+    --indigo: #4338ca;
+    --teal:   #0f766e;
+    --amber:  #b45309;
+    --red:    #b91c1c;
+    --green:  #166534;
+    --gray:   #374151;
+    --light:  #f8fafc;
+    --border: #e2e8f0;
+    --code-bg:#1e293b;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1e293b;
+    background: #fff;
+    line-height: 1.7;
+    font-size: 10.5pt;
+  }
+
+  /* ── Cover page ── */
+  .cover {
+    height: 100vh;
+    min-height: 700px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #1d4ed8 100%);
+    color: #fff;
+    padding: 60px 40px;
+    page-break-after: always;
+  }
+  .cover-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 9pt;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-size: 36pt;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    max-width: 700px;
+  }
+  .cover h1 span { color: #93c5fd; }
+  .cover p {
+    font-size: 13pt;
+    color: rgba(255,255,255,0.8);
+    max-width: 560px;
+    margin-bottom: 40px;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    font-size: 9pt;
+    color: rgba(255,255,255,0.6);
+  }
+  .cover-meta strong { color: rgba(255,255,255,0.9); }
+
+  /* ── Layout ── */
+  .page {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 52px;
+  }
+
+  /* ── Section headers ── */
+  .section-label {
+    font-size: 8pt;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+  h2 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 2.5px solid var(--blue);
+  }
+  h3 {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 28px 0 10px;
+  }
+  h4 {
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: var(--gray);
+    margin: 18px 0 6px;
+  }
+  p { margin-bottom: 12px; }
+
+  /* ── Cards ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .card {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    background: var(--light);
+  }
+  .card-title {
+    font-weight: 600;
+    font-size: 10pt;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p { font-size: 9.5pt; color: #475569; margin-bottom: 0; }
+  .card.blue  { border-color: #bfdbfe; background: #eff6ff; }
+  .card.green { border-color: #bbf7d0; background: #f0fdf4; }
+  .card.amber { border-color: #fde68a; background: #fffbeb; }
+  .card.red   { border-color: #fecaca; background: #fef2f2; }
+  .card.indigo{ border-color: #c7d2fe; background: #eef2ff; }
+  .card.teal  { border-color: #99f6e4; background: #f0fdfa; }
+
+  .icon { font-size: 14pt; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 8.5pt;
+    overflow-x: auto;
+    margin: 14px 0;
+    line-height: 1.6;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 8.5pt;
+    background: #f1f5f9;
+    color: #be185d;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  pre code { background: none; color: inherit; padding: 0; }
+  .kw  { color: #c084fc; }
+  .fn  { color: #60a5fa; }
+  .str { color: #86efac; }
+  .cmt { color: #64748b; font-style: italic; }
+  .num { color: #fb923c; }
+  .type{ color: #fde047; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin: 16px 0;
+  }
+  th {
+    background: #0f172a;
+    color: #f1f5f9;
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 9pt;
+  }
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+  tr:hover td { background: #eff6ff; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+  .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge-green  { background: #dcfce7; color: #166534; }
+  .badge-amber  { background: #fef3c7; color: #92400e; }
+  .badge-red    { background: #fee2e2; color: #991b1b; }
+  .badge-indigo { background: #e0e7ff; color: #3730a3; }
+  .badge-gray   { background: #f1f5f9; color: #475569; }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 9.5pt;
+    border-left: 4px solid;
+  }
+  .callout-blue   { background: #eff6ff; border-color: #3b82f6; color: #1e3a8a; }
+  .callout-green  { background: #f0fdf4; border-color: #22c55e; color: #14532d; }
+  .callout-amber  { background: #fffbeb; border-color: #f59e0b; color: #78350f; }
+
+  /* ── Architecture diagram ── */
+  .arch {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 24px;
+    color: #e2e8f0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8pt;
+    line-height: 1.8;
+    margin: 16px 0;
+  }
+  .arch .box  { color: #93c5fd; }
+  .arch .arrow{ color: #6ee7b7; }
+  .arch .note { color: #94a3b8; }
+
+  /* ── Pipeline steps ── */
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 20px 0;
+  }
+  .step {
+    flex: 1;
+    background: var(--light);
+    border: 1.5px solid var(--border);
+    border-radius: 0;
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 9pt;
+    position: relative;
+  }
+  .step:first-child { border-radius: 8px 0 0 8px; }
+  .step:last-child  { border-radius: 0 8px 8px 0; }
+  .step .step-num {
+    width: 24px; height: 24px;
+    background: var(--blue);
+    color: #fff;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9pt; font-weight: 700;
+    margin: 0 auto 8px;
+  }
+  .step .step-name { font-weight: 600; font-size: 9.5pt; color: #0f172a; }
+  .step .step-sub  { font-size: 8pt; color: #64748b; margin-top: 3px; }
+  .arrow-step {
+    display: flex; align-items: center;
+    color: var(--blue); font-size: 16pt; font-weight: 700;
+    padding: 0 2px;
+  }
+
+  /* ── Confidence visual ── */
+  .conf-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+    font-size: 9.5pt;
+  }
+  .conf-fill {
+    height: 14px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    font-size: 7.5pt;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* ── Page breaks ── */
+  .break { page-break-after: always; padding-bottom: 40px; }
+
+  /* ── List styles ── */
+  ul, ol { padding-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+  li::marker { color: var(--blue); }
+
+  /* ── Section spacer ── */
+  .spacer { height: 32px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  /* ── Two-column layout ── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 16px 0;
+  }
+
+  /* ── Print styles ── */
+  @media print {
+    body { font-size: 10pt; }
+    .cover { height: 100vh; }
+    .page { padding: 36px 44px; }
+    h2 { font-size: 18pt; }
+    pre { font-size: 7.5pt; }
+    .pipeline { flex-wrap: nowrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <div class="cover-badge">CS Project Documentation</div>
+  <h1>Dead <span>Feature</span> Detector</h1>
+  <p>A whole-program LLVM analysis tool that finds dead feature-flag code across all real build configurations — and shows you exactly where to delete it.</p>
+  <div class="cover-meta">
+    <div><strong>Core language</strong><br>C++17 · Python 3.10 · TypeScript</div>
+    <div><strong>Key technology</strong><br>LLVM 17+ IR Analysis</div>
+    <div><strong>Test results</strong><br>42 findings · 103 dead lines</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 1 -->
+<div class="page break">
+
+  <div class="section-label">Section 1</div>
+  <h2>The Problem</h2>
+
+  <p>Large C/C++ projects — think LLVM, CPython, Linux — accumulate <strong>feature flags</strong> over years. A feature flag is a <code>#define</code> preprocessor macro or a runtime boolean like <code>g_feature_enabled</code> that gates a chunk of code:</p>
+
+  <pre><code><span class="cmt">// Example: compile-time flag</span>
+<span class="kw">#ifdef</span> ENABLE_LEGACY_PARSER
+<span class="fn">void</span> <span class="fn">old_parse</span>() { <span class="cmt">/* 300 lines of old code */</span> }
+<span class="kw">#endif</span>
+
+<span class="cmt">// Example: runtime flag</span>
+<span class="kw">static int</span> g_feature_zlib = <span class="num">0</span>;   <span class="cmt">// never set to 1 in any build</span>
+<span class="kw">if</span> (g_feature_zlib) {
+    compress_with_zlib(data);    <span class="cmt">// dead — never executes</span>
+}</code></pre>
+
+  <p>The trouble is: <strong>some flags are never actually enabled</strong> in any real build, yet the code stays in the codebase indefinitely. Nobody knows it's dead. Standard compiler optimisations remove dead code <em>within a single file</em>, but they cannot tell you which feature-flag combinations are unused across all builds of a large project.</p>
+
+  <div class="card-grid">
+    <div class="card red">
+      <div class="card-title"><span class="icon">⚠️</span> The Gap in Existing Tools</div>
+      <p>Dead-code eliminators (DCE) only work per-file, per-compilation. They cannot cross-reference the build system to know which <code>#define</code> combinations are actually used across all targets.</p>
+    </div>
+    <div class="card green">
+      <div class="card-title"><span class="icon">✅</span> What This Tool Does</div>
+      <p>Combines build-system analysis (which <code>#define</code> sets exist) with IR-level reachability (is this code block ever reached?) to find code dead across <em>all</em> configurations.</p>
+    </div>
+  </div>
+
+  <h3>Two things no existing tool combines</h3>
+  <ol>
+    <li><strong>Build-system configuration analysis</strong> — which <code>#define</code> sets are actually used across all real build targets (from CMake or Makefiles)</li>
+    <li><strong>IR-level reachability</strong> — which code regions are unreachable in the compiled program regardless of input</li>
+  </ol>
+
+  <div class="callout callout-blue">
+    <strong>Key insight:</strong> A feature can be "dead" in two ways. Either the preprocessor strips it before the compiler ever sees it (<em>compile-time dead</em>), or the code is compiled in but a runtime flag is always zero so the branch never executes (<em>runtime dead</em>). A third case is when a function exists but nobody in the whole program ever calls it (<em>interprocedural dead</em>).
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 2 -->
+<div class="page break">
+
+  <div class="section-label">Section 2</div>
+  <h2>Architecture Overview</h2>
+
+  <p>The tool is a four-stage pipeline. Each stage produces a JSON file that the next stage reads. The final output feeds a local web GUI.</p>
+
+  <div class="pipeline">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-name">Config Extractor</div>
+      <div class="step-sub">CMake/Makefile → config.json</div>
+    </div>
+    <div class="arrow-step">→</div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-name">IR Analyzer</div>
+      <div class="step-sub">bitcode → ir_findings.json</div>
+    </div>
+    <div class="arrow-step">→</div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-name">Report Generator</div>
+      <div class="step-sub">merge + score → report.json</div>
+    </div>
+    <div class="arrow-step">→</div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-name">Web GUI</div>
+      <div class="step-sub">FastAPI + React browser UI</div>
+    </div>
+  </div>
+
+  <div class="arch">
+<span class="box">┌──────────────────────┐</span>     <span class="box">┌─────────────────────────┐</span>     <span class="box">┌──────────────────────┐</span>
+<span class="box">│  Build Config         │</span>     <span class="box">│  LLVM IR Analyzer       │</span>     <span class="box">│  Report Generator    │</span>
+<span class="box">│  Extractor (Python)   │</span><span class="arrow">────▶</span><span class="box">│  (C++ LLVM pass)        │</span><span class="arrow">────▶</span><span class="box">│  (Python)            │</span>
+<span class="box">│                       │</span>     <span class="box">│                         │</span>     <span class="box">│                      │</span>
+<span class="box">│  · CMake File API     │</span>     <span class="box">│  · compile_time (0.95)  │</span>     <span class="box">│  · merge + dedupe    │</span>
+<span class="box">│  · compile_commands   │</span>     <span class="box">│  · runtime (0.85)       │</span>     <span class="box">│  · confidence score  │</span>
+<span class="box">│  · Makefile dry-run   │</span>     <span class="box">│  · interprocedural(0.60)│</span>     <span class="box">│  · binary size est.  │</span>
+<span class="box">└──────────┬───────────┘</span>     <span class="box">└──────────┬──────────────┘</span>     <span class="box">└──────────┬───────────┘</span>
+           <span class="arrow">│ config.json          </span>          <span class="arrow">│ ir_findings.json              </span><span class="arrow">│ report.json</span>
+           <span class="arrow">└──────────────────────────────────────────────────────────────▶│</span>
+                                                                                  <span class="arrow">▼</span>
+                                                                    <span class="box">┌──────────────────────┐</span>
+                                                                    <span class="box">│  Web GUI             │</span>
+                                                                    <span class="box">│  FastAPI + React     │</span>
+                                                                    <span class="box">│                      │</span>
+                                                                    <span class="box">│  · Findings browser  │</span>
+                                                                    <span class="box">│  · Source viewer     │</span>
+                                                                    <span class="box">│  · Impact dashboard  │</span>
+                                                                    <span class="box">└──────────────────────┘</span>
+  </div>
+
+  <h3>How Stages Communicate</h3>
+  <p>Stages communicate <strong>only through JSON files on disk</strong> — no shared memory, no RPC. This means each stage can be developed, tested, and run independently.</p>
+
+  <table>
+    <tr><th>File</th><th>Written by</th><th>Read by</th><th>Contents</th></tr>
+    <tr><td><code>config.json</code></td><td>Config Extractor</td><td>IR Analyzer, Reporter</td><td>Per-target <code>#define</code> sets and source file lists</td></tr>
+    <tr><td><code>program.bc</code></td><td>Clang (user-invoked)</td><td>IR Analyzer</td><td>Whole-program LLVM bitcode</td></tr>
+    <tr><td><code>ir_findings.json</code></td><td>IR Analyzer (LLVM pass)</td><td>Report Generator</td><td>Raw array of dead regions with source locations</td></tr>
+    <tr><td><code>report.json</code></td><td>Report Generator</td><td>Web GUI (FastAPI)</td><td>Enriched findings with confidence scores, stats</td></tr>
+  </table>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 3 -->
+<div class="page break">
+
+  <div class="section-label">Section 3 · Component 1</div>
+  <h2>Build Configuration Extractor</h2>
+
+  <p><strong>What it does:</strong> Reads the project's build system to discover every <code>#define</code> that gets passed to the compiler for every build target. Outputs a JSON manifest.</p>
+
+  <h3>What is a "build configuration"?</h3>
+  <p>When you compile a C/C++ project, the build system (CMake or Make) passes flags to the compiler like <code>-DENABLE_ZLIB=1</code> or <code>-DNDEBUG</code>. Different build targets (e.g. Debug vs Release, different platforms) get different sets of flags. The extractor enumerates all of these.</p>
+
+  <h3>Three Parsing Strategies (in priority order)</h3>
+
+  <div class="card-grid">
+    <div class="card blue">
+      <div class="card-title"><span class="icon">🏆</span> 1. CMake File API <span class="badge badge-blue">Preferred</span></div>
+      <p>CMake's built-in JSON output. Run <code>cmake -S . -B build</code> and CMake writes machine-readable JSON to <code>build/.cmake/api/v1/reply/</code>. Parsed by <code>cmake_api.py</code>. Most accurate — directly from CMake's internal model.</p>
+    </div>
+    <div class="card amber">
+      <div class="card-title"><span class="icon">🔄</span> 2. compile_commands.json <span class="badge badge-amber">Fallback 1</span></div>
+      <p>A standard JSON file most C++ build systems can generate (<code>-DCMAKE_EXPORT_COMPILE_COMMANDS=ON</code>). Lists every compiler invocation. The extractor greps for <code>-D</code> flags in each command.</p>
+    </div>
+    <div class="card teal">
+      <div class="card-title"><span class="icon">🔧</span> 3. Makefile Dry-Run <span class="badge badge-gray">Fallback 2</span></div>
+      <p>For Makefile projects: run <code>make -np --dry-run</code> which prints all commands without executing them. Parse compiler lines for <code>-D</code> flags. Works on projects that don't use CMake.</p>
+    </div>
+  </div>
+
+  <h3>Output Format</h3>
+  <pre><code>{
+  <span class="str">"targets"</span>: [
+    {
+      <span class="str">"name"</span>: <span class="str">"clangBasic"</span>,
+      <span class="str">"compile_definitions"</span>: [<span class="str">"LLVM_ENABLE_THREADS=1"</span>, <span class="str">"NDEBUG"</span>],
+      <span class="str">"source_files"</span>: [<span class="str">"lib/Basic/Foo.cpp"</span>, <span class="str">"lib/Basic/Bar.cpp"</span>]
+    },
+    {
+      <span class="str">"name"</span>: <span class="str">"clangAST"</span>,
+      <span class="str">"compile_definitions"</span>: [<span class="str">"LLVM_ENABLE_THREADS=1"</span>, <span class="str">"ENABLE_LEGACY_AST=0"</span>],
+      <span class="str">"source_files"</span>: [<span class="str">"lib/AST/Expr.cpp"</span>]
+    }
+  ],
+  <span class="str">"global_definitions"</span>: [<span class="str">"_GNU_SOURCE"</span>, <span class="str">"NDEBUG"</span>]
+}</code></pre>
+
+  <h3>Technologies Used</h3>
+  <table>
+    <tr><th>Technology</th><th>What it is</th><th>Why used here</th></tr>
+    <tr><td><strong>Python 3.10+</strong></td><td>General-purpose scripting language</td><td>Fast JSON parsing, filesystem traversal, no compilation needed</td></tr>
+    <tr><td><strong>CMake File API</strong></td><td>CMake's official JSON introspection protocol</td><td>Most accurate source of per-target compile definitions</td></tr>
+    <tr><td><code>pathlib.Path</code></td><td>Python standard library path API</td><td>Cross-platform file path handling</td></tr>
+    <tr><td><code>json</code> module</td><td>Python standard library JSON parser</td><td>Reading CMake's reply files and writing config.json</td></tr>
+  </table>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 4 -->
+<div class="page break">
+
+  <div class="section-label">Section 4 · Component 2</div>
+  <h2>LLVM IR Analyzer (The Core)</h2>
+
+  <p>This is the heart of the tool. It is written in <strong>C++17</strong> using the LLVM API and compiled into a shared library (<code>DeadFeaturePass.so</code>) that plugs into LLVM's <code>opt</code> tool.</p>
+
+  <h3>What is LLVM IR?</h3>
+  <p>When Clang compiles a C/C++ source file, it first converts the source code to <strong>LLVM Intermediate Representation (IR)</strong> — a platform-independent, typed assembly-like language. IR is stored in <strong>bitcode</strong> (<code>.bc</code>) files. The tool analyses the IR, not the raw source.</p>
+
+  <div class="callout callout-amber">
+    <strong>Why analyse IR and not source?</strong> Source files are hard to analyse correctly (macros, includes, preprocessor state). IR is already fully resolved — the compiler has done the hard parsing. IR also carries <strong>DWARF debug metadata</strong> that links every instruction back to its original source file and line number.
+  </div>
+
+  <h3>What is an LLVM Pass?</h3>
+  <p>An LLVM pass is a visitor that walks the IR and collects or transforms information. This tool implements a <strong>ModulePass</strong> — it receives the entire linked program (all functions, all globals) in one shot and runs three detection phases over it.</p>
+
+  <pre><code><span class="cmt">// How the pass is invoked by opt:</span>
+opt --load-pass-plugin=<span class="str">./DeadFeaturePass.so</span> \
+    -passes=<span class="str">dead-feature</span> \
+    --dead-feature-output=<span class="str">ir_findings.json</span> \
+    program.bc -o /dev/null</code></pre>
+
+  <h3>Why -O0 Bitcode?</h3>
+  <p>The tool requires bitcode compiled at <strong>-O0 (no optimisations)</strong>. At -O1 and above, the compiler's own <code>simplifycfg</code> pass deletes unreachable blocks <em>before</em> our pass can see them — so we'd get zero findings. At -O0, dead blocks are preserved literally as written in source.</p>
+
+  <div class="card-grid">
+    <div class="card red">
+      <div class="card-title"><span class="icon">❌</span> At -O1 or higher</div>
+      <p>Compiler's own dead-code passes delete unreachable blocks first. Our pass sees a cleaned-up IR with no dead blocks to report.</p>
+    </div>
+    <div class="card green">
+      <div class="card-title"><span class="icon">✅</span> At -O0 (required)</div>
+      <p>All blocks, including dead ones, are preserved. Our pass can find and report them, giving developers the information to remove them manually.</p>
+    </div>
+  </div>
+
+  <h3>Bitcode Generation Command</h3>
+  <pre><code>clang -O0 -gline-tables-only -fno-discard-value-names \
+      -emit-llvm -c source.cpp -o source.bc
+
+llvm-link source1.bc source2.bc -o program.bc   <span class="cmt"># whole-program link</span></code></pre>
+
+  <p>The flags mean: <code>-O0</code> no optimisations, <code>-gline-tables-only</code> emit DWARF line numbers (so we can map back to source), <code>-fno-discard-value-names</code> keep basic block names readable, <code>-emit-llvm</code> output bitcode not machine code.</p>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 5 -->
+<div class="page break">
+
+  <div class="section-label">Section 4 (continued) · Detection Phases</div>
+  <h2>Three Detection Phases</h2>
+
+  <p>All three phases run in a single pass over the module. Each produces findings with a different confidence score.</p>
+
+  <!-- Phase 1 -->
+  <h3>Phase 1 — Compile-Time Dead Blocks <span class="badge badge-blue">confidence 0.95</span></h3>
+  <p><strong>What it finds:</strong> Basic blocks with no predecessors in the Control Flow Graph (CFG) — code that is unreachable by any path through the function.</p>
+
+  <div class="two-col">
+    <div>
+      <h4>How it works</h4>
+      <p>A basic block is compile-time dead if <em>all three</em> conditions hold:</p>
+      <ol>
+        <li>It is <strong>not the entry block</strong> of the function</li>
+        <li><code>pred_empty(&amp;BB)</code> — no other block has an edge pointing to it</li>
+        <li><code>!BB.hasAddressTaken()</code> — not referenced via a computed-goto pointer</li>
+      </ol>
+    </div>
+    <div>
+      <pre><code><span class="cmt">// Typical source that creates</span>
+<span class="cmt">// a compile-time dead block:</span>
+<span class="kw">void</span> <span class="fn">foo</span>() {
+  <span class="kw">return</span>;
+  <span class="cmt">// ↓ This block has no</span>
+  <span class="cmt">// predecessors in the CFG</span>
+  do_something_dead();
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-green">
+    <strong>Why 0.95 and not 1.0?</strong> There is a tiny 5% gap to account for edge cases where DWARF debug info attributes a block to a different file than expected, or where <code>blockaddress</code> usage is present but not detected.
+  </div>
+
+  <!-- Phase 2 -->
+  <h3>Phase 2 — Runtime Dead Blocks <span class="badge badge-amber">confidence 0.85</span></h3>
+  <p><strong>What it finds:</strong> Conditional branches where one side is provably never taken because a feature-flag global is always zero.</p>
+
+  <h4>Step 1: Identify feature-flag globals</h4>
+  <p>A global variable is treated as a feature flag if its name matches the pattern:</p>
+  <pre><code>g_feature_ | _enabled$ | _flag$ | kEnable | FEATURE_ | _ENABLED | FLAGS_
+<span class="cmt">// Examples: g_feature_zlib, kEnableNewParser, FLAGS_use_compression</span></code></pre>
+
+  <h4>Step 2: Prove the flag is zero (three sub-paths)</h4>
+  <table>
+    <tr><th>Sub-path</th><th>Condition</th><th>How</th></tr>
+    <tr>
+      <td><strong>Fast path</strong></td>
+      <td>Branch condition is already a <code>ConstantInt</code></td>
+      <td>A prior <code>globalopt</code> pass already folded the constant. Direct <code>dyn_cast&lt;ConstantInt&gt;</code> check.</td>
+    </tr>
+    <tr>
+      <td><strong>Static path</strong></td>
+      <td>Global has internal linkage, zero initialiser, and no stores anywhere</td>
+      <td><code>isConstantZeroGlobal()</code>: checks linkage + initialiser + scans all users for <code>StoreInst</code>. Needs <em>no prior opt passes</em>.</td>
+    </tr>
+    <tr>
+      <td><strong>Slow path</strong></td>
+      <td>Other cases</td>
+      <td><code>LazyValueInfo::getConstant()</code> — LLVM's backwards dataflow analysis that can prove a value is constant given branch constraints upstream.</td>
+    </tr>
+  </table>
+
+  <!-- Phase 3 -->
+  <h3>Phase 3 — Interprocedural Dead Functions <span class="badge badge-red">confidence 0.60</span></h3>
+  <p><strong>What it finds:</strong> Entire functions that are never called from anywhere reachable from the program entry point.</p>
+
+  <h4>Algorithm: BFS from live roots</h4>
+  <ol>
+    <li>Start with a <strong>live set</strong> = <code>main()</code> + all functions with external linkage (exported symbols)</li>
+    <li>Use LLVM's <code>CallGraph</code> to expand: for each live function, add all its callees to the live set</li>
+    <li>Any function in the module but <em>not</em> in the live set is dead</li>
+  </ol>
+
+  <div class="callout callout-amber">
+    <strong>Why only 0.60?</strong> Indirect calls (via function pointers) are conservatively ignored. A function reachable only via a function pointer would be a false positive. Lower confidence signals "verify before deleting."
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 6 -->
+<div class="page break">
+
+  <div class="section-label">Section 4 (continued) · LLVM Technologies</div>
+  <h2>LLVM Technologies Used in the Analyzer</h2>
+
+  <table>
+    <tr><th>LLVM API / Concept</th><th>What it is</th><th>How used in this project</th></tr>
+    <tr>
+      <td><code>ModulePass</code></td>
+      <td>An LLVM analysis pass that receives the entire linked program module at once</td>
+      <td>Used so the pass can see all functions together — required for call-graph analysis</td>
+    </tr>
+    <tr>
+      <td><code>BasicBlock</code></td>
+      <td>A straight-line sequence of instructions with one entry and one exit (branch/return)</td>
+      <td>Iterated to find blocks with no predecessors (Phase 1)</td>
+    </tr>
+    <tr>
+      <td><code>pred_empty(&amp;BB)</code></td>
+      <td>LLVM utility that checks whether a basic block has zero incoming CFG edges</td>
+      <td>Core check for compile-time dead block detection</td>
+    </tr>
+    <tr>
+      <td><code>DILocation</code></td>
+      <td>DWARF debug metadata attached to each IR instruction, storing file name and line number</td>
+      <td>Maps every dead IR block back to its original source file and line range</td>
+    </tr>
+    <tr>
+      <td><code>LazyValueInfo</code></td>
+      <td>LLVM analysis that propagates value ranges backwards through the CFG</td>
+      <td>Proves that a feature-flag comparison always evaluates to false (Phase 2 slow path)</td>
+    </tr>
+    <tr>
+      <td><code>GlobalVariable</code></td>
+      <td>LLVM representation of a C/C++ global variable</td>
+      <td>Inspected for linkage type, initialiser value, and store usage to identify constant-zero flags</td>
+    </tr>
+    <tr>
+      <td><code>CallGraph</code></td>
+      <td>LLVM analysis that builds the caller/callee relationship graph for all functions</td>
+      <td>BFS traversal from main() to find unreachable functions (Phase 3)</td>
+    </tr>
+    <tr>
+      <td><strong>Pass Plugin API</strong></td>
+      <td>LLVM's mechanism for loading passes from .so shared libraries at runtime</td>
+      <td>The pass is compiled to <code>DeadFeaturePass.so</code> and loaded via <code>--load-pass-plugin</code></td>
+    </tr>
+    <tr>
+      <td><code>opt</code> tool</td>
+      <td>LLVM's IR optimiser/analyser command-line tool</td>
+      <td>The tool that runs the pass on bitcode files (<code>opt -passes=dead-feature ...</code>)</td>
+    </tr>
+    <tr>
+      <td><code>llvm-link</code></td>
+      <td>LLVM tool that merges multiple bitcode files into one whole-program bitcode</td>
+      <td>Required before Phase 3 (interprocedural analysis) so the full call graph is visible</td>
+    </tr>
+    <tr>
+      <td><code>llvm-nm</code></td>
+      <td>LLVM tool that lists symbol names and sizes from object files</td>
+      <td>Used by <code>binary_size.py</code> to measure actual byte size of dead symbols</td>
+    </tr>
+    <tr>
+      <td><code>llc</code></td>
+      <td>LLVM static compiler: converts bitcode to object files</td>
+      <td>Used with <code>-filetype=obj</code> to compile bitcode before measuring symbol sizes</td>
+    </tr>
+    <tr>
+      <td><strong>New Pass Manager</strong></td>
+      <td>LLVM's modern pass infrastructure (replaced legacy PassManager in LLVM 13+)</td>
+      <td>The pass is registered via <code>llvmGetPassPluginInfo()</code> and <code>PassBuilder</code> callbacks</td>
+    </tr>
+  </table>
+
+  <h3>Pass Registration (how the plugin wires up)</h3>
+  <pre><code><span class="cmt">// plugin.cpp — how LLVM finds and loads our pass</span>
+<span class="fn">llvmGetPassPluginInfo</span>() {
+    <span class="kw">return</span> {LLVM_PLUGIN_API_VERSION, <span class="str">"DeadFeaturePass"</span>, LLVM_VERSION_STRING,
+            [](<span class="type">PassBuilder</span> &amp;PB) {
+                PB.<span class="fn">registerPipelineParsingCallback</span>(
+                    [](<span class="type">StringRef</span> name, <span class="type">ModulePassManager</span> &amp;MPM, ...) {
+                        <span class="kw">if</span> (name == <span class="str">"dead-feature"</span>) {
+                            MPM.<span class="fn">addPass</span>(<span class="fn">DeadFeaturePass</span>(outputPath));
+                            <span class="kw">return true</span>;
+                        }
+                        <span class="kw">return false</span>;
+                    });
+            }};
+}</code></pre>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 7 -->
+<div class="page break">
+
+  <div class="section-label">Section 5 · Component 3</div>
+  <h2>Report Generator</h2>
+
+  <p>The report generator is a Python package (<code>src/reporter/</code>) that takes the raw IR findings and the config manifest and produces the final <code>report.json</code> used by the GUI.</p>
+
+  <h3>Four sub-modules</h3>
+
+  <div class="card-grid">
+    <div class="card blue">
+      <div class="card-title"><code>merge.py</code></div>
+      <p>Joins IR findings with config data by matching source file basenames. Deduplicates findings from multiple bitcode files (per-TU and whole-program) by <code>(function, source_file, start_line)</code>. Adds a human-readable <code>feature_name</code> inferred from function/BB names.</p>
+    </div>
+    <div class="card indigo">
+      <div class="card-title"><code>score.py</code></div>
+      <p>Applies the confidence scoring table. Already set by the IR pass, but score.py can override or adjust based on config correlation (e.g. a finding in a source file that's always compiled = lower confidence).</p>
+    </div>
+    <div class="card teal">
+      <div class="card-title"><code>render.py</code></div>
+      <p>Writes the final <code>report.json</code> and a human-readable <code>report.txt</code> summary. The JSON schema mirrors the TypeScript types in the frontend exactly.</p>
+    </div>
+    <div class="card green">
+      <div class="card-title"><code>binary_size.py</code></div>
+      <p>Measures how many bytes of compiled code could be removed. Uses <code>llc -filetype=obj</code> to compile bitcode to an object file, then <code>llvm-nm --print-size</code> to read per-symbol sizes.</p>
+    </div>
+  </div>
+
+  <h3>Confidence Score Table</h3>
+
+  <p>Confidence is a float in [0.0, 1.0] indicating how certain the tool is that a finding is truly dead:</p>
+
+  <div class="conf-bar"><div class="conf-fill" style="width:190px;background:#166534;">0.95</div><span><strong>compile_time</strong> — structural IR property; no predecessors in CFG</span></div>
+  <div class="conf-bar"><div class="conf-fill" style="width:170px;background:#1d4ed8;">0.85</div><span><strong>runtime</strong> — flag proven zero by direct global inspection or LazyValueInfo</span></div>
+  <div class="conf-bar"><div class="conf-fill" style="width:120px;background:#92400e;">0.60</div><span><strong>interprocedural</strong> — function unreachable by call-graph BFS (may have false positives via function pointers)</span></div>
+  <div class="conf-bar"><div class="conf-fill" style="width:70px;background:#991b1b;">0.35</div><span><strong>heuristic</strong> — name-match only, no dataflow proof</span></div>
+
+  <table>
+    <tr><th>Confidence range</th><th>Meaning</th><th>Recommended action</th></tr>
+    <tr><td><code>≥ 0.8</code></td><td>Provably dead under all enumerated configurations</td><td>Safe to remove in automated refactoring</td></tr>
+    <tr><td><code>0.5 – 0.79</code></td><td>Likely dead; requires manual verification</td><td>Review before removing</td></tr>
+    <tr><td><code>&lt; 0.5</code></td><td>Possibly dead; flagged for awareness</td><td>Investigate only</td></tr>
+  </table>
+
+  <h3>Binary Size Estimation</h3>
+  <p>For whole-function dead findings (interprocedural), the reporter measures the exact compiled size of the dead symbol using <code>llvm-nm --print-size</code>. For block-level findings (compile_time / runtime), it estimates using <code>estimated_lines × bytes_per_line</code>, where <code>bytes_per_line</code> is calibrated against the measured whole-function symbols in the same run. The result lands in <code>stats.removable_bytes</code>.</p>
+
+  <pre><code><span class="cmt"># Output structure in report.json</span>
+{
+  <span class="str">"findings"</span>: [
+    {
+      <span class="str">"id"</span>: <span class="num">0</span>,
+      <span class="str">"feature_name"</span>: <span class="str">"compress_with_zlib"</span>,
+      <span class="str">"kind"</span>: <span class="str">"runtime"</span>,
+      <span class="str">"confidence"</span>: <span class="num">0.85</span>,
+      <span class="str">"source_file"</span>: <span class="str">"/src/compression.cpp"</span>,
+      <span class="str">"start_line"</span>: <span class="num">142</span>,
+      <span class="str">"end_line"</span>: <span class="num">167</span>,
+      <span class="str">"estimated_lines"</span>: <span class="num">26</span>,
+      <span class="str">"estimated_bytes"</span>: <span class="num">832</span>,
+      <span class="str">"dead_in_targets"</span>: [<span class="str">"clangBasic"</span>, <span class="str">"clangAST"</span>]
+    }
+  ],
+  <span class="str">"stats"</span>: {
+    <span class="str">"total_findings"</span>: <span class="num">42</span>,
+    <span class="str">"total_dead_lines"</span>: <span class="num">103</span>,
+    <span class="str">"removable_bytes"</span>: <span class="num">2355</span>,
+    <span class="str">"binary_size_measured"</span>: <span class="kw">true</span>
+  }
+}</code></pre>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 8 -->
+<div class="page break">
+
+  <div class="section-label">Section 6 · Component 4</div>
+  <h2>Web GUI</h2>
+
+  <p>The GUI is a local web application. Running <code>python -m gui</code> starts a FastAPI server and opens the browser automatically. No internet connection required — all frontend assets are bundled at build time.</p>
+
+  <div class="two-col">
+    <div>
+      <h3>Backend (FastAPI + Python)</h3>
+      <p>A REST API server that reads <code>report.json</code> and serves it to the React frontend. It also serves source file content (with a security guard) and orchestrates the full analysis pipeline on demand.</p>
+      <h4>REST Endpoints</h4>
+      <table>
+        <tr><th>Endpoint</th><th>Purpose</th></tr>
+        <tr><td><code>GET /findings</code></td><td>List all dead regions (filterable)</td></tr>
+        <tr><td><code>GET /findings/{id}</code></td><td>Single finding detail</td></tr>
+        <tr><td><code>GET /source</code></td><td>Read source file lines (guarded)</td></tr>
+        <tr><td><code>GET /stats</code></td><td>Summary + confidence histogram</td></tr>
+        <tr><td><code>GET /config</code></td><td>Build configurations (Obj. 1)</td></tr>
+        <tr><td><code>GET /eval</code></td><td>Evaluation results (Obj. 4)</td></tr>
+        <tr><td><code>POST /run</code></td><td>Trigger analysis pipeline</td></tr>
+        <tr><td><code>GET /run/log</code></td><td>SSE live log stream</td></tr>
+      </table>
+    </div>
+    <div>
+      <h3>Frontend (React + TypeScript)</h3>
+      <p>A single-page application with six tabs, one per project deliverable. Built with Vite, deployed as static files served by FastAPI.</p>
+      <table>
+        <tr><th>Tab / Component</th><th>Shows</th></tr>
+        <tr><td><strong>Objectives</strong></td><td>5-card overview; all deliverables + status</td></tr>
+        <tr><td><strong>Setup</strong></td><td>Pipeline runner + live log</td></tr>
+        <tr><td><strong>Configurations</strong></td><td>Per-target #define sets (Obj. 1)</td></tr>
+        <tr><td><strong>Reachability</strong></td><td>Per-mechanism counts (Obj. 2)</td></tr>
+        <tr><td><strong>Findings</strong></td><td>Filterable table + source viewer (Obj. 3)</td></tr>
+        <tr><td><strong>Evaluation</strong></td><td>Test-case results (Obj. 4)</td></tr>
+        <tr><td><strong>Impact</strong></td><td>Dead lines + binary savings (Obj. 5)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>Frontend Technologies</h3>
+
+  <div class="card-grid">
+    <div class="card blue">
+      <div class="card-title"><strong>React 18 + TypeScript</strong></div>
+      <p>React is a JavaScript UI library for building component-based interfaces. TypeScript adds static types. Used for all six GUI tabs; types mirror the <code>report.json</code> schema exactly.</p>
+    </div>
+    <div class="card indigo">
+      <div class="card-title"><strong>Vite</strong></div>
+      <p>A modern JavaScript build tool (faster than Webpack). Bundles all React components + dependencies into static files in <code>src/gui/static/</code> so the GUI works offline without Node.js at runtime.</p>
+    </div>
+    <div class="card teal">
+      <div class="card-title"><strong>D3.js</strong></div>
+      <p>A data visualisation library. Used to render the confidence histogram in the Impact dashboard — an SVG bar chart showing how many findings fall into each confidence bucket (0.0–0.1, 0.1–0.2, etc.).</p>
+    </div>
+    <div class="card amber">
+      <div class="card-title"><strong>Prism.js</strong></div>
+      <p>A syntax highlighting library. Used in the Source Viewer to display C/C++ source code with coloured keywords, strings, and comments. Dead line ranges are overlaid in red on top of the highlighted code.</p>
+    </div>
+  </div>
+
+  <h3>Backend Technologies</h3>
+
+  <div class="card-grid">
+    <div class="card blue">
+      <div class="card-title"><strong>FastAPI</strong></div>
+      <p>A modern Python web framework. Automatically generates OpenAPI docs from type annotations. Used for all REST endpoints. Chosen for its speed (Starlette/ASGI) and async support needed for the SSE log stream.</p>
+    </div>
+    <div class="card green">
+      <div class="card-title"><strong>uvicorn</strong></div>
+      <p>An ASGI web server for Python, based on <code>uvloop</code>. Serves the FastAPI app. Launched by <code>python -m gui</code>; auto-starts the browser after binding the port.</p>
+    </div>
+    <div class="card red">
+      <div class="card-title"><strong>Server-Sent Events (SSE)</strong></div>
+      <p>A web standard for one-way real-time streaming from server to browser. Used for the live pipeline log: as <code>opt</code> processes each bitcode file, log lines are streamed to the GUI in real time without polling.</p>
+    </div>
+    <div class="card amber">
+      <div class="card-title"><strong>Path-traversal guard</strong></div>
+      <p>The <code>/source</code> endpoint resolves the requested path and checks it is a prefix of <code>--source-root</code> before reading. Prevents a crafty user from reading <code>/etc/passwd</code> via the GUI.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 9 -->
+<div class="page break">
+
+  <div class="section-label">Section 7</div>
+  <h2>Evaluation & Test Cases</h2>
+
+  <p>The tool ships with six test cases, each in its own directory under <code>testcases/</code>. Every test case has an <code>expected.json</code> ground truth that the CI runner compares against actual output.</p>
+
+  <h3>Test Cases TC-01 to TC-05 (Unit tests)</h3>
+
+  <table>
+    <tr><th>TC</th><th>Name</th><th>What it tests</th><th>Expected findings</th><th>Confidence</th></tr>
+    <tr>
+      <td><strong>TC-01</strong></td>
+      <td>compile_time_block</td>
+      <td>A labeled basic block after a <code>return</code> — no predecessors in CFG</td>
+      <td>1 finding</td>
+      <td><span class="badge badge-green">0.95</span></td>
+    </tr>
+    <tr>
+      <td><strong>TC-02</strong></td>
+      <td>runtime_flag_zero</td>
+      <td>A <code>static int g_feature_x = 0</code> global with no stores — branch always false</td>
+      <td>1 finding</td>
+      <td><span class="badge badge-blue">0.85</span></td>
+    </tr>
+    <tr>
+      <td><strong>TC-03</strong></td>
+      <td>dead_function</td>
+      <td>A single function that is never called (not reachable from main)</td>
+      <td>1 finding</td>
+      <td><span class="badge badge-amber">0.60</span></td>
+    </tr>
+    <tr>
+      <td><strong>TC-04</strong></td>
+      <td>transitive_dead</td>
+      <td>A 3-function chain where the root is unreachable (A calls B calls C, but A is never called)</td>
+      <td>3 findings</td>
+      <td><span class="badge badge-amber">0.60</span></td>
+    </tr>
+    <tr>
+      <td><strong>TC-05</strong></td>
+      <td>alive_code</td>
+      <td><strong>Negative test</strong> — all code is reachable; tool should report zero findings</td>
+      <td>0 findings</td>
+      <td>—</td>
+    </tr>
+  </table>
+
+  <h3>TC-06 — Large Demo Case ("streamd")</h3>
+
+  <p>The flagship demo: a synthetic 9-file project simulating a streaming server with three build variants. Designed to exercise all three detection phases simultaneously.</p>
+
+  <div class="card-grid">
+    <div class="card blue">
+      <div class="card-title"><span class="icon">📊</span> Total Findings</div>
+      <p><strong style="font-size:20pt;color:#1d4ed8;">42</strong> dead code regions detected across 103 dead lines</p>
+    </div>
+    <div class="card green">
+      <div class="card-title"><span class="icon">🗑️</span> Removable Binary</div>
+      <p><strong style="font-size:20pt;color:#166534;">~2.3 KB</strong> of compiled text section could be removed</p>
+    </div>
+    <div class="card indigo">
+      <div class="card-title"><span class="icon">📁</span> Scale</div>
+      <p><strong>9 source files</strong>, <strong>3 build variants</strong> with different <code>#define</code> sets</p>
+    </div>
+    <div class="card amber">
+      <div class="card-title"><span class="icon">✅</span> All types detected</div>
+      <p><strong>12</strong> compile_time + <strong>12</strong> runtime + <strong>18</strong> interprocedural — all in a single pass run</p>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt"># Run TC-06 with the GUI:</span>
+./run.sh --testcase 06 --gui</code></pre>
+
+  <h3>How Tests Are Run</h3>
+  <p>Python unit tests use <strong>pytest</strong>. C++ pass tests use <strong>ctest</strong>. The CI runner (<code>scripts/ci.sh</code>) runs both.</p>
+
+  <table>
+    <tr><th>Test type</th><th>Framework</th><th>What it covers</th></tr>
+    <tr><td>Config extractor unit tests</td><td>pytest</td><td>CMake/Makefile parsing with fixture projects</td></tr>
+    <tr><td>Reporter unit tests</td><td>pytest</td><td>Golden-file comparison: IR JSON + config → expected report.json</td></tr>
+    <tr><td>IR pass tests (fixtures)</td><td>ctest + LLVM lit</td><td>Pass on .ll fixture files → assert findings match expected</td></tr>
+    <tr><td>GUI backend unit tests</td><td>pytest</td><td>All REST endpoints against a golden report.json fixture</td></tr>
+    <tr><td>End-to-end TC-01 to TC-06</td><td><code>run.sh</code></td><td>Full pipeline: source → bitcode → findings → GUI</td></tr>
+  </table>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 10 -->
+<div class="page break">
+
+  <div class="section-label">Section 8</div>
+  <h2>Full Technology Stack</h2>
+
+  <h3>Core Tool (IR Analyzer)</h3>
+  <table>
+    <tr><th>Technology</th><th>Version</th><th>Role</th></tr>
+    <tr><td><strong>C++17</strong></td><td>—</td><td>Implementation language for the LLVM pass; required for structured bindings (<code>auto [file, start] = ...</code>) and other modern features</td></tr>
+    <tr><td><strong>LLVM</strong></td><td>17+</td><td>The compiler infrastructure framework; provides all IR types, analysis passes (CallGraph, LazyValueInfo), and the pass plugin API</td></tr>
+    <tr><td><strong>Clang</strong></td><td>17+</td><td>C/C++ compiler used to produce bitcode from source files (<code>-emit-llvm</code>)</td></tr>
+    <tr><td><strong>CMake</strong></td><td>3.20+</td><td>Build system for the C++ pass; uses <code>find_package(LLVM)</code> for out-of-tree pass builds</td></tr>
+  </table>
+
+  <h3>Config Extractor & Reporter</h3>
+  <table>
+    <tr><th>Technology</th><th>Version</th><th>Role</th></tr>
+    <tr><td><strong>Python</strong></td><td>3.10+</td><td>Implementation language for the extractor, reporter, and GUI backend</td></tr>
+    <tr><td><strong>CMake File API</strong></td><td>v1</td><td>CMake's machine-readable JSON output; provides per-target compile definitions</td></tr>
+    <tr><td><code>pathlib</code></td><td>stdlib</td><td>Cross-platform path handling in extractor and source reader</td></tr>
+    <tr><td><code>json</code></td><td>stdlib</td><td>Reading/writing all JSON manifests</td></tr>
+    <tr><td><code>regex</code></td><td>stdlib</td><td>Feature-flag global name heuristic pattern matching</td></tr>
+  </table>
+
+  <h3>GUI Backend</h3>
+  <table>
+    <tr><th>Technology</th><th>Role</th></tr>
+    <tr><td><strong>FastAPI</strong></td><td>ASGI web framework; provides REST endpoints + automatic OpenAPI docs + SSE streaming</td></tr>
+    <tr><td><strong>uvicorn</strong></td><td>ASGI server that runs FastAPI; launched by <code>python -m gui</code></td></tr>
+    <tr><td><strong>asyncio</strong></td><td>Python async runtime; used for the SSE log stream and background pipeline execution</td></tr>
+  </table>
+
+  <h3>GUI Frontend</h3>
+  <table>
+    <tr><th>Technology</th><th>Role</th></tr>
+    <tr><td><strong>React 18</strong></td><td>UI component library; renders all six tabs and manages state</td></tr>
+    <tr><td><strong>TypeScript</strong></td><td>Typed JavaScript; types mirror <code>report.json</code> schema exactly</td></tr>
+    <tr><td><strong>Vite</strong></td><td>Frontend build tool; bundles everything into <code>static/</code> for offline use</td></tr>
+    <tr><td><strong>D3.js</strong></td><td>Data visualisation; confidence histogram SVG in the Impact dashboard</td></tr>
+    <tr><td><strong>Prism.js</strong></td><td>Syntax highlighter; C/C++ highlighting in the Source Viewer with dead-line overlays</td></tr>
+  </table>
+
+  <h3>Development & Testing</h3>
+  <table>
+    <tr><th>Technology</th><th>Role</th></tr>
+    <tr><td><strong>pytest</strong></td><td>Python test framework; unit + integration tests for extractor, reporter, GUI backend</td></tr>
+    <tr><td><strong>ctest</strong></td><td>CMake's test runner; runs C++ pass tests</td></tr>
+    <tr><td><strong>Docker</strong></td><td>Reproducible environment; image bundles Clang 17, Python 3.10, Node 18</td></tr>
+  </table>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 11 -->
+<div class="page break">
+
+  <div class="section-label">Section 9</div>
+  <h2>Key Design Decisions (Q&amp;A Ready)</h2>
+
+  <p>These are the decisions most likely to be asked about in a demo or review.</p>
+
+  <h3>Q: Why use LLVM IR instead of analysing source code directly?</h3>
+  <div class="callout callout-blue">
+    Source code is ambiguous — macros, includes, and preprocessor state make it hard to reason about. IR is fully resolved by the compiler: all types are explicit, all control flow is a CFG, and DWARF debug metadata still links every instruction back to the original source line. Analysing IR means we can use proven LLVM analyses (LazyValueInfo, CallGraph) instead of reimplementing them.
+  </div>
+
+  <h3>Q: Why require -O0 bitcode? Can't you use optimised code?</h3>
+  <div class="callout callout-amber">
+    At -O1 and above, LLVM's <code>simplifycfg</code> pass deletes unreachable basic blocks before our pass can see them. The whole point of the tool is to <em>report</em> these blocks as dead so developers know about them — if the compiler silently deletes them, we learn nothing. -O0 preserves them.
+  </div>
+
+  <h3>Q: Why don't you need globalopt or constprop pre-passes?</h3>
+  <div class="callout callout-green">
+    The key insight is <code>isConstantZeroGlobal()</code>: if a global has internal linkage, a zero integer initialiser, and no <code>StoreInst</code> in its user list, it is provably zero — no dataflow analysis needed. This means compile_time and runtime phases can run together in the same -O0 pipeline without pre-passes that would delete the compile_time blocks.
+  </div>
+
+  <h3>Q: Why is interprocedural confidence only 0.60?</h3>
+  <div class="callout callout-amber">
+    The call-graph BFS conservatively ignores indirect calls (function pointers). A function reachable only via a function pointer would be a false positive. The lower confidence score is an honest signal: verify this finding before removing the code.
+  </div>
+
+  <h3>Q: What is the source-file security guard in the GUI?</h3>
+  <div class="callout callout-blue">
+    The <code>/source</code> endpoint calls <code>Path(file).resolve()</code> and checks that the resolved path starts with the configured <code>source_root</code>. Without this check, a crafted request could traverse to <code>/etc/passwd</code> or other sensitive files.
+  </div>
+
+  <h3>Q: How does the live log in the GUI work?</h3>
+  <div class="callout callout-green">
+    The pipeline runs as an asyncio background task. As <code>opt</code> finishes each bitcode file, the pipeline emits a log line to an <code>asyncio.Queue</code>. The <code>GET /run/log</code> endpoint is an SSE (Server-Sent Events) stream — the browser keeps the HTTP connection open and receives each line as it arrives, giving a real-time progress view.
+  </div>
+
+  <h3>Q: How do findings from multiple bitcode files avoid being counted twice?</h3>
+  <div class="callout callout-blue">
+    <code>reporter/merge.py</code> deduplicates by the tuple <code>(function_name, source_file, start_line)</code>. When the same dead region appears in both a per-TU bitcode and the merged whole-program bitcode, only the entry with the highest confidence is kept.
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 12 -->
+<div class="page break">
+
+  <div class="section-label">Section 10</div>
+  <h2>Project Objectives → GUI Mapping</h2>
+
+  <p>Every project deliverable is surfaced by exactly one GUI component. This table is the definitive reference:</p>
+
+  <table>
+    <tr><th>#</th><th>Deliverable</th><th>GUI Tab</th><th>Component file</th><th>Backend endpoint</th><th>Headline metric</th></tr>
+    <tr>
+      <td><strong>1</strong></td>
+      <td>Build configuration extractor (CMake/Makefile → <code>#define</code> sets)</td>
+      <td><strong>Configurations</strong></td>
+      <td><code>ConfigView.tsx</code></td>
+      <td><code>GET /config</code></td>
+      <td>Per-target define sets + source-file counts</td>
+    </tr>
+    <tr>
+      <td><strong>2</strong></td>
+      <td>Whole-program analysis correlating config predicates with IR reachability</td>
+      <td><strong>Reachability</strong></td>
+      <td><code>ReachabilityView.tsx</code></td>
+      <td><code>GET /stats</code></td>
+      <td>Per-mechanism counts with explanation of what each proves</td>
+    </tr>
+    <tr>
+      <td><strong>3</strong></td>
+      <td>Report of dead features with confidence scores and affected source regions</td>
+      <td><strong>Findings</strong></td>
+      <td><code>FindingTable.tsx</code> + <code>SourceViewer.tsx</code></td>
+      <td><code>GET /findings</code>, <code>GET /source</code></td>
+      <td>Filterable findings table + syntax-highlighted source with dead lines flagged</td>
+    </tr>
+    <tr>
+      <td><strong>4</strong></td>
+      <td>Evaluation on a large OSS project</td>
+      <td><strong>Evaluation</strong></td>
+      <td><code>EvaluationView.tsx</code></td>
+      <td><code>GET /eval</code></td>
+      <td>Test-case suite (expected vs status) + integration programs + LLVM target status</td>
+    </tr>
+    <tr>
+      <td><strong>5</strong></td>
+      <td>Estimate of removable code volume (lines + binary size)</td>
+      <td><strong>Impact</strong></td>
+      <td><code>Dashboard.tsx</code></td>
+      <td><code>GET /stats</code> (<code>removable_bytes</code>)</td>
+      <td>Dead-line count + measured binary savings + confidence histogram</td>
+    </tr>
+  </table>
+
+  <h3>The Objectives Overview Tab</h3>
+  <p>The landing page of the GUI (<code>ObjectivesOverview.tsx</code>) shows a 5-card grid — one card per deliverable — with:</p>
+  <ul>
+    <li>The deliverable title and description</li>
+    <li>The <strong>headline outcome metric</strong> (e.g. "42 findings", "103 dead lines")</li>
+    <li>A <strong>Met / Pending badge</strong> indicating if the deliverable has results</li>
+    <li>A <strong>"View →" deep-link</strong> that switches directly to the relevant tab</li>
+  </ul>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ PAGE 13 -->
+<div class="page">
+
+  <div class="section-label">Section 11</div>
+  <h2>How to Run the Tool</h2>
+
+  <h3>Step 1: Build</h3>
+  <pre><code><span class="cmt"># Build everything: LLVM pass + Python venv + React frontend</span>
+./build.sh</code></pre>
+
+  <p>This runs CMake to compile <code>DeadFeaturePass.so</code>, creates a Python virtual environment, installs FastAPI/uvicorn, runs <code>npm install</code>, and runs <code>vite build</code> to bundle the frontend.</p>
+
+  <h3>Step 2: Run a test case</h3>
+  <pre><code><span class="cmt"># Run TC-06 (large demo) with the GUI — recommended for demos</span>
+./run.sh --testcase 06 --gui
+
+<span class="cmt"># Run a specific test case without GUI</span>
+./run.sh --testcase 01</code></pre>
+
+  <h3>Step 3: Run on your own project</h3>
+  <pre><code><span class="cmt"># 1. Compile your project to bitcode</span>
+clang -O0 -gline-tables-only -fno-discard-value-names \
+      -emit-llvm -c src/myfile.cpp -o build/myfile.bc
+
+<span class="cmt"># 2. Link bitcode files</span>
+llvm-link build/*.bc -o build/program.bc
+
+<span class="cmt"># 3. Run the full pipeline + open GUI</span>
+python -m gui.backend   <span class="cmt"># opens Setup tab; fill in build_dir + source_root</span></code></pre>
+
+  <h3>Directory structure summary</h3>
+  <table>
+    <tr><th>Path</th><th>What it contains</th></tr>
+    <tr><td><code>build.sh</code></td><td>Root build script — run once after cloning</td></tr>
+    <tr><td><code>run.sh</code></td><td>Root runner — shortcut for test cases</td></tr>
+    <tr><td><code>src/config_extractor/</code></td><td>Python CMake/Makefile parser</td></tr>
+    <tr><td><code>src/ir_analyzer/</code></td><td>C++ LLVM pass (<code>DeadFeaturePass.so</code>)</td></tr>
+    <tr><td><code>src/reporter/</code></td><td>Python merge + score + render</td></tr>
+    <tr><td><code>src/gui/backend/</code></td><td>FastAPI server + pipeline orchestrator</td></tr>
+    <tr><td><code>src/gui/frontend/</code></td><td>React + TypeScript source</td></tr>
+    <tr><td><code>src/gui/static/</code></td><td>Vite-built frontend (served by FastAPI)</td></tr>
+    <tr><td><code>testcases/</code></td><td>TC-01 to TC-06 with expected.json</td></tr>
+    <tr><td><code>eval/</code></td><td>LLVM large-scale evaluation scripts</td></tr>
+    <tr><td><code>tests/</code></td><td>pytest + ctest unit test suite</td></tr>
+  </table>
+
+  <hr/>
+
+  <div class="callout callout-green">
+    <strong>For the demo:</strong> Run <code>./run.sh --testcase 06 --gui</code>. This processes the 9-file "streamd" project and opens the browser showing all 42 findings. Switch to each tab (Objectives → Configurations → Reachability → Findings → Evaluation → Impact) to walk through all 5 deliverables live.
+  </div>
+
+  <div style="margin-top: 40px; text-align: center; color: #94a3b8; font-size: 9pt; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+    Dead Feature Detector &nbsp;·&nbsp; Whole-program LLVM analysis &nbsp;·&nbsp; C++17 · Python 3.10 · TypeScript · LLVM 17+
+  </div>
+
+</div>
+
+</body>
+</html>
