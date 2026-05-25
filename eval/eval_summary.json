@@ -1,5 +1,5 @@
 {
-  "about": "Evaluation results for the Dead Feature Detector (Objective 4). The validated suite is the 5 minimal test cases plus a large multi-file demo program. The large-scale target (LLVM itself) is configured but not yet executed.",
+  "about": "Evaluation results for the Dead Feature Detector (Objective 4). The validated suite is 5 minimal test cases plus a large multi-file demo program, plus a large-scale run on the SQLite 3.49.1 amalgamation (261 K lines).",
   "aggregate": {
     "suite_size": 6,
     "all_passing": true,
@@ -73,17 +73,15 @@
     }
   ],
   "large_scale": {
-    "target": "LLVM (Clang LTO build)",
-    "status": "configured — not yet run",
-    "reason": "requires a multi-GB whole-program LTO build; not automated in CI",
-    "build_script": "eval/build_llvm.sh",
-    "run_script": "eval/run_eval.sh",
-    "fallback_targets": ["CPython", "SQLite", "Redis"],
-    "expected_categories": [
-      "experimental backends guarded by LLVM_EXPERIMENTAL_TARGETS_TO_BUILD",
-      "deprecated API wrappers under LLVM_ENABLE_DEPRECATED",
-      "platform-specific paths (#ifdef _WIN32) absent from a Linux build",
-      "assertion/debug code excluded under NDEBUG"
-    ]
+    "target": "SQLite 3.49.1 amalgamation",
+    "status": "pass",
+    "source_lines": 261454,
+    "findings": 580,
+    "dead_lines": 16603,
+    "removable_bytes": 170189,
+    "avg_confidence": 0.607,
+    "kinds": { "compile_time": 0, "runtime": 15, "interprocedural": 565 },
+    "run_script": "eval/run_sqlite.sh",
+    "note": "Single-file amalgamation; 565 dead functions unreachable from any translation-unit entry point, 15 zero-initialised runtime flag guards. 170 KB removable text measured via llvm-nm."
   }
 }

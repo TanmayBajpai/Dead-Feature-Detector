@@ -77,6 +77,13 @@ export interface EvalData {
     run_script?: string
     fallback_targets?: string[]
     expected_categories?: string[]
+    source_lines?: number
+    findings?: number
+    dead_lines?: number
+    removable_bytes?: number
+    avg_confidence?: number
+    kinds?: Record<string, number>
+    note?: string
   }
 }
 

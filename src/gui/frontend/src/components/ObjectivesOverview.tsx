@@ -30,7 +30,10 @@ export default function ObjectivesOverview({ stats, config, evalData, onNavigate
     ? `${formatBytes(stats.removable_bytes)} removable (measured via llvm-nm)`
     : 'binary size not measured — re-run pipeline to measure'
 
-  const llvm = evalData?.large_scale?.status ?? 'not run'
+  const lsTarget = evalData?.large_scale
+  const lsLabel = lsTarget?.findings !== undefined
+    ? `${lsTarget.target}: ${lsTarget.findings} findings`
+    : `${lsTarget?.target ?? 'large-scale'}: ${lsTarget?.status ?? 'not run'}`
 
   const cards: ObjectiveCard[] = [
     {
@@ -68,12 +71,12 @@ export default function ObjectivesOverview({ stats, config, evalData, onNavigate
     },
     {
       num: 4,
-      title: 'Evaluation on LLVM / large OSS',
-      deliverable: 'Evaluate the pipeline on LLVM itself (or another large open-source project).',
+      title: 'Evaluation on large OSS',
+      deliverable: 'Evaluate the pipeline on a large open-source project (SQLite 3.49.1 amalgamation).',
       tab: 'evaluation',
       outcome: [
         `${evalData?.aggregate?.suite_size ?? 0} test case(s), ${evalData?.aggregate?.all_passing ? 'all passing' : 'see results'}`,
-        `LLVM target: ${llvm}`,
+        lsLabel,
       ],
       met: !!evalData?.has_eval,
     },

@@ -23,3 +23,5 @@ cmake_install.cmake
 DartConfiguration.tcl
 CTestTestfile.cmake
 .claude/
+eval/sqlite/
+eval/sqlite-results/

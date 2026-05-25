@@ -88,33 +88,53 @@ export default function EvaluationView({ evalData }: Props) {
       </Section>
 
       <Section title="Large-scale target">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontWeight: 600, fontSize: 15 }}>{ls.target}</span>
-            <span style={{
-              fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99,
-              background: 'rgba(251,146,60,0.14)', color: 'var(--dead-rt)', border: '1px solid var(--dead-rt)',
-            }}>{ls.status}</span>
+            {statusTag(ls.status ?? '')}
           </div>
-          <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>{ls.reason}</div>
-          <div style={{ fontSize: 12.5 }}>
-            <span style={{ color: 'var(--text-muted)' }}>Build: </span>
-            <code>{ls.build_script}</code>
-            <span style={{ color: 'var(--text-muted)', marginLeft: 12 }}>Run: </span>
-            <code>{ls.run_script}</code>
-          </div>
-          {ls.fallback_targets && (
-            <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
-              Fallback targets: {ls.fallback_targets.join(', ')}
-            </div>
-          )}
-          {ls.expected_categories && (
-            <div>
-              <div style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 4 }}>Expected dead-feature categories:</div>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-muted)' }}>
-                {ls.expected_categories.map((c, i) => <li key={i}>{c}</li>)}
-              </ul>
-            </div>
+
+          {ls.findings !== undefined ? (
+            <>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <MetricChip label="Source lines" value={ls.source_lines?.toLocaleString() ?? '—'} />
+                <MetricChip label="Findings" value={ls.findings.toLocaleString()} />
+                <MetricChip label="Dead lines" value={ls.dead_lines?.toLocaleString() ?? '—'} />
+                <MetricChip label="Removable" value={ls.removable_bytes ? `${(ls.removable_bytes / 1024).toFixed(0)} KB` : '—'} />
+                <MetricChip label="Avg confidence" value={ls.avg_confidence?.toFixed(3) ?? '—'} />
+              </div>
+              {ls.kinds && (
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text-muted)' }}>
+                  compile_time {ls.kinds.compile_time ?? 0} · runtime {ls.kinds.runtime ?? 0} · interprocedural {ls.kinds.interprocedural ?? 0}
+                </div>
+              )}
+              {ls.note && <div style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>{ls.note}</div>}
+              <div style={{ fontSize: 12 }}>
+                <span style={{ color: 'var(--text-muted)' }}>Script: </span>
+                <code>{ls.run_script}</code>
+              </div>
+            </>
+          ) : (
+            <>
+              {ls.reason && <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>{ls.reason}</div>}
+              <div style={{ fontSize: 12.5 }}>
+                {ls.build_script && <><span style={{ color: 'var(--text-muted)' }}>Build: </span><code>{ls.build_script}</code></>}
+                {ls.run_script && <><span style={{ color: 'var(--text-muted)', marginLeft: 12 }}>Run: </span><code>{ls.run_script}</code></>}
+              </div>
+              {ls.fallback_targets && (
+                <div style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>
+                  Fallback targets: {ls.fallback_targets.join(', ')}
+                </div>
+              )}
+              {ls.expected_categories && (
+                <div>
+                  <div style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 4 }}>Expected dead-feature categories:</div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: 'var(--text-muted)' }}>
+                    {ls.expected_categories.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                </div>
+              )}
+            </>
           )}
         </div>
       </Section>
@@ -127,6 +147,15 @@ function Card({ label, value }: { label: string; value: number | string }) {
     <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: '16px 20px', minWidth: 160 }}>
       <div style={{ color: 'var(--text-muted)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 700, marginTop: 4 }}>{value}</div>
+    </div>
+  )
+}
+
+function MetricChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 6, padding: '8px 14px', minWidth: 110 }}>
+      <div style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, marginTop: 2 }}>{value}</div>
     </div>
   )
 }
