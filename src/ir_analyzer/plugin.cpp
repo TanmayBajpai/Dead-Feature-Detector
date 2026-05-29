@@ -30,11 +30,19 @@ llvm::PassPluginLibraryInfo getDeadFeaturePluginInfo() {
                 // Also register as an optimizer-last EP so users can load via
                 // clang -fpass-plugin=libDeadFeaturePass.so without spelling out
                 // the pipeline explicitly.
+                // ThinOrFullLTOPhase was added to this callback in LLVM 19.
+#if LLVM_VERSION_MAJOR >= 19
                 PB.registerOptimizerLastEPCallback(
                     [](ModulePassManager &MPM, OptimizationLevel,
                        ThinOrFullLTOPhase) {
                         MPM.addPass(dfd::DeadFeaturePass(OutputPath));
                     });
+#else
+                PB.registerOptimizerLastEPCallback(
+                    [](ModulePassManager &MPM, OptimizationLevel) {
+                        MPM.addPass(dfd::DeadFeaturePass(OutputPath));
+                    });
+#endif
             }};
 }
 
