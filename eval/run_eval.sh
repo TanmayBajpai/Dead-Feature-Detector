@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 LLVM_BUILD="${1:-$ROOT/eval/llvm-build}"
 OUT_DIR="$ROOT/eval/results"
-PASS_LIB="$ROOT/build/src/ir_analyzer/libDeadFeaturePass.so"
+PASS_LIB="$ROOT/build/src/ir_analyzer/DeadFeaturePass.so"
 
 if [[ ! -f "$PASS_LIB" ]]; then
     echo "Pass plugin not found: $PASS_LIB  (run scripts/ci.sh first)"
