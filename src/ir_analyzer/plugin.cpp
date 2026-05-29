@@ -1,7 +1,11 @@
 #include "DeadFeaturePass.h"
 
 #include "llvm/Passes/PassBuilder.h"
+#if __has_include("llvm/Plugins/PassPlugin.h")
 #include "llvm/Plugins/PassPlugin.h"
+#else
+#include "llvm/Passes/PassPlugin.h"
+#endif
 #include "llvm/Support/CommandLine.h"
 
 using namespace llvm;
